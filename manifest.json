@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "DarkScope",
+  "description": "Tool for dark pattern detection in web applications",
+  "version": "0.1.0",
+  "permissions": ["activeTab", "tabs"],
+  "action": {
+    "default_popup": "src/popup/index.html",
+    "default_title": "Dark Pattern Detector"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content/content.js"]
+    }
+  ],
+  "icons": {
+    "16": "icons/crosshair.png",
+    "48": "icons/crosshair.png",
+    "128": "icons/crosshair.png"
+  }
+}
