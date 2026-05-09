@@ -1,30 +1,23 @@
 {
-  "name": "dark-pattern-detector",
+  "name": "darkscope",
   "private": true,
-  "version": "0.1.0",
-  "type": "module",
+  "version": "1.0.0",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "build": "webpack",
+    "watch": "webpack --watch"
   },
   "dependencies": {
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "lucide-react": "^0.536.0",
-    "react": "^18",
-    "react-dom": "^18",
-    "tailwind-merge": "^3.3.1"
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4",
-    "@types/chrome": "^0",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "@vitejs/plugin-react": "^4",
-    "tailwindcss": "^4",
-    "typescript": "^5",
-    "vite": "^5"
+    "@types/chrome": "^0.1.28",
+    "copy-webpack-plugin": "^13.0.1",
+    "ts-loader": "^9.5.4",
+    "typescript": "^5.9.3",
+    "webpack": "^5.102.1",
+    "webpack-cli": "^6.0.1"
   }
 }
