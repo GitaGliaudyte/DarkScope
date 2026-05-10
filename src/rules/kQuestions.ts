@@ -1,20 +1,27 @@
 // This file defines the static K-question weights and principle mappings used for profile scoring.
 import { KQuestion, PageType, PrincipleMeta } from '../engine/types';
 
-const ALL_PAGE_CONTEXTS: PageType[] = ['product', 'cart', 'checkout', 'registration', 'account_settings', 'generic'];
+// const ALL_PAGE_CONTEXTS: PageType[] = ['product', 'cart', 'checkout', 'registration', 'account_settings', 'generic'];
 
 // TODO: Add real values of P1-P7 to the question entries)
 export const K_QUESTIONS: KQuestion[] = [
   {
     id: 'K-02',
-    label: 'Ar paskyros nustatymuose nėra paskyros ištrynimo funkcijos?',
+    label: 'Is the account deletion function missing from account settings?',
     weight: 3,
     principles: { P3: 1, P5: 1, P7: 1 },
     relevantContexts: ['account_settings']
   },
   {
+    id: 'K-04',
+    label: 'Are there links on the page returning 4xx or 5xx HTTP status codes?',
+    weight: 2,
+    principles: { P4: 0.5, P7: 1 },
+    relevantContexts: ['product', 'registration', 'account_settings', 'checkout', 'cart']
+  },
+  {
     id: 'K-59',
-    label: 'Ar sąsajoje yra atgalinio skaičiavimo laikmatis, rodantis riboto laiko prieigą ar nuolaidą prekei ar paslaugai?',
+    label: 'Is there a countdown timer in the interface showing limited-time access or a discount for a product or service?',
     weight: 2,
     principles: { P2: 0.5, P3: 0.5, P6: 0.5 },
     relevantContexts: ['product', 'cart', 'checkout']

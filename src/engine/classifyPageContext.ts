@@ -344,6 +344,10 @@ function toPageContextFromWinner(winner: TypeScore, isConflicted: boolean): Page
   };
 }
 
+function hasStandaloneHeuristicWinner(winner: TypeScore | undefined, runnerUp: TypeScore | undefined): boolean {
+  return winner !== undefined && winner.total > 0 && (runnerUp === undefined || runnerUp.total === 0);
+}
+
 function shouldKeepHeuristicWinner(winner: TypeScore | undefined, llmResult: PageContext): boolean {
   if (winner === undefined || winner.total <= 0) {
     return false;
@@ -526,7 +530,12 @@ export async function classifyPageContext(): Promise<PageContext> {
   console.log('winned:', winner);
   console.log('runner up:', runnerUp);
 
-  if (winner === undefined || winner.total < 3 || (isConflicted && winner.layer1 === 0)) {
+  const shouldUseLlmFallback =
+    winner === undefined ||
+    winner.total === 0 ||
+    ((winner.total < 3 || isConflicted) && !hasStandaloneHeuristicWinner(winner, runnerUp));
+
+  if (shouldUseLlmFallback) {
     const result = await classifyWithLLM();
     console.log('LLM result:', result);
 
@@ -537,20 +546,6 @@ export async function classifyPageContext(): Promise<PageContext> {
     return result;
   // }
   //   return classifyWithLLM();
-  }
-
-  const derivedConfidence = deriveConfidence(winner);
-
-  if (derivedConfidence === 'low') {
-    const result = await classifyWithLLM();
-    console.log('LLM result:', result);
-
-    if (shouldKeepHeuristicWinner(winner, result)) {
-      return toPageContextFromWinner(winner, isConflicted);
-    }
-
-    return result;
-    // return classifyWithLLM();
   }
 
   return toPageContextFromWinner(winner, isConflicted);
