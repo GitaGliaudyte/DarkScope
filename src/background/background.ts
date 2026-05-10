@@ -111,8 +111,9 @@ async function handleLlmRequest(message: LlmRequestMessage): Promise<LlmSuccessR
 
     const text = data.candidates
       ?.flatMap((candidate) => candidate.content?.parts ?? [])
-      .find((part) => typeof part.text === 'string')
-      ?.text;
+      .map((part) => (typeof part.text === 'string' ? part.text : ''))
+      .join('')
+      .trim();
 
     if (typeof text !== 'string' || text.length === 0) {
       console.error('[DarkScope][LLM] Gemini response contained no text', {

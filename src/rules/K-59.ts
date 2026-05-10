@@ -2,6 +2,7 @@
 import { defaultPageClassifier } from '../engine/pageClassifier';
 import { createNormalizedElement, isVisibleElement } from '../engine/normalizedElements';
 import { AnalysisContext, Confidence, NormalizedElement, RuleDefinition, RuleResult } from '../engine/types';
+import { buildVisualTarget, clampProbability, createRuleResult } from '../rules-utilities/resultUtils';
 
 const TIMER_ATTRIBUTES = ['data-countdown', 'data-timer', 'data-end-time', 'data-target-time'] as const;
 const LIVE_TEXT_SELECTOR = 'span, div, p, small, strong, b, em, li';
@@ -175,10 +176,6 @@ export function findContainer(liveElement: HTMLElement, snapshot: AnalysisContex
   return createNormalizedElement(liveElement);
 }
 
-function clampProbability(value: number): number {
-  return Math.max(0, Math.min(1, value));
-}
-
 const K59Rule: RuleDefinition = {
   id: 'K-59',
   pageClassifier: defaultPageClassifier,
@@ -237,25 +234,15 @@ const K59Rule: RuleDefinition = {
       });
     }
 
-    const occurrenceCount = evidence.length;
-    const detected = occurrenceCount > 0;
-
-    return {
+    return createRuleResult({
       ruleId: 'K-59',
-      detected,
-      status: detected ? 'detected' : 'not_detected',
+      detected: evidence.length > 0,
       probability: clampProbability(highestScore / 10),
       confidence: getConfidence(highestScore),
       impact: 'medium',
       evidence,
-      explanation: '',
-      recommendation: '',
-      visualTarget: {
-        type: occurrenceCount > 1 ? 'multiple' : occurrenceCount === 1 ? 'single' : 'none',
-        selectors: Array.from(selectors)
-      },
-      occurrenceCount
-    };
+      visualTarget: buildVisualTarget(Array.from(selectors))
+    });
   }
 };
 

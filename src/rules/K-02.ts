@@ -2,6 +2,7 @@
 import { defaultPageClassifier } from '../engine/pageClassifier';
 import { generateUniqueSelector, isVisibleElement, normalizeWhitespace } from '../engine/normalizedElements';
 import { AnalysisContext, Confidence, RuleDefinition, RuleResult } from '../engine/types';
+import { buildVisualTarget, clampProbability, createRuleResult } from '../rules-utilities/resultUtils';
 
 const DELETION_CONTROL_SELECTOR = 'button, a, input[type="submit"], input[type="button"], [role="button"], summary, details';
 const HIDDEN_CONTAINER_SELECTOR = '[class*="hidden"], [class*="collapsed"], [aria-hidden="true"]';
@@ -375,10 +376,6 @@ export function getConfidence(score: number): Confidence {
   return 'low';
 }
 
-function clampProbability(value: number): number {
-  return Math.max(0, Math.min(1, value));
-}
-
 function getEvidenceText(element: Element): string {
   const text = getElementText(element);
 
@@ -413,10 +410,9 @@ const K02Rule: RuleDefinition = {
     if (visibleDeletion.length > 0) {
       const firstVisible = visibleDeletion[0];
 
-      return {
+      return createRuleResult({
         ruleId: 'K-02',
         detected: false,
-        status: 'not_detected',
         probability: 0,
         confidence: 'low',
         impact: 'high',
@@ -429,35 +425,23 @@ const K02Rule: RuleDefinition = {
               firstVisible.element instanceof HTMLElement ? firstVisible.element.getBoundingClientRect() : null
           }
         ],
-        explanation: '',
-        recommendation: '',
-        visualTarget: {
-          type: 'none',
-          selectors: []
-        },
+        visualTarget: buildVisualTarget([]),
         occurrenceCount: 1
-      };
+      });
     }
 
     const score = scoreSignals(deletionSignals, hiddenSignals, context.snapshot);
 
     if (score < 5) {
-      return {
+      return createRuleResult({
         ruleId: 'K-02',
         detected: false,
-        status: 'not_detected',
         probability: clampProbability(score / 12),
         confidence: getConfidence(score),
         impact: 'high',
-        evidence: [],
-        explanation: '',
-        recommendation: '',
-        visualTarget: {
-          type: 'none',
-          selectors: []
-        },
+        visualTarget: buildVisualTarget([]),
         occurrenceCount: 0
-      };
+      });
     }
 
     const interactiveCount = getInteractiveElementCount(context.snapshot);
@@ -483,22 +467,16 @@ const K02Rule: RuleDefinition = {
       hiddenSignals.length > 0 ? hiddenSignals.map((signal) => generateUniqueSelector(signal.element)) : [];
     const occurrenceCount = hiddenSignals.length > 0 ? hiddenSignals.length : 1;
 
-    return {
+    return createRuleResult({
       ruleId: 'K-02',
       detected: true,
-      status: 'detected',
       probability: clampProbability(score / 12),
       confidence: getConfidence(score),
       impact: 'high',
       evidence,
-      explanation: '',
-      recommendation: '',
-      visualTarget: {
-        type: hiddenSignals.length > 1 ? 'multiple' : hiddenSignals.length === 1 ? 'single' : 'none',
-        selectors
-      },
+      visualTarget: buildVisualTarget(selectors),
       occurrenceCount
-    };
+    });
   }
 };
 

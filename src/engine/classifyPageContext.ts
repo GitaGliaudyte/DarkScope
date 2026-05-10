@@ -334,6 +334,24 @@ function deriveConfidence(winner: TypeScore): Confidence {
   return 'low';
 }
 
+function toPageContextFromWinner(winner: TypeScore, isConflicted: boolean): PageContext {
+  const derivedConfidence = deriveConfidence(winner);
+
+  return {
+    type: winner.type,
+    confidence: isConflicted ? 'medium' : derivedConfidence,
+    signals: winner.signals
+  };
+}
+
+function shouldKeepHeuristicWinner(winner: TypeScore | undefined, llmResult: PageContext): boolean {
+  if (winner === undefined || winner.total <= 0) {
+    return false;
+  }
+
+  return llmResult.type === 'generic';
+}
+
 function collectButtonTexts(): string[] {
   return Array.from(document.querySelectorAll<HTMLButtonElement | HTMLInputElement>('button, input[type="submit"]'))
     .map((element) => normalizeText(element instanceof HTMLInputElement ? element.value : element.textContent))
@@ -364,6 +382,29 @@ function buildLlmContext(): string {
 
 function stripMarkdownFences(value: string): string {
   return value.replace(/```json/gi, '').replace(/```/g, '').trim();
+}
+
+function extractPageTypeFromResponse(value: string): PageType | null {
+  const normalized = stripMarkdownFences(value).trim().toLowerCase();
+  const directMatch = parsePageType(normalized);
+
+  if (directMatch !== null) {
+    return directMatch;
+  }
+
+  const jsonTypeMatch = normalized.match(/"type"\s*:\s*"([a-z_]+)"/i);
+
+  if (jsonTypeMatch !== null) {
+    return parsePageType(jsonTypeMatch[1]);
+  }
+
+  const tokenMatch = normalized.match(/\b(product|cart|checkout|registration|account_settings|generic)\b/i);
+
+  if (tokenMatch !== null) {
+    return parsePageType(tokenMatch[1]);
+  }
+
+  return null;
 }
 
 function previewText(value: string): string {
@@ -428,7 +469,8 @@ async function classifyWithLLM(): Promise<PageContext> {
     'Page context:',
     buildLlmContext(),
     '',
-    'Respond with only valid JSON: {"type": "<type>"}'
+    'Respond with only one lowercase token from this list and nothing else:',
+    'product, cart, checkout, registration, account_settings'
   ].join('\n');
 
   try {
@@ -436,27 +478,12 @@ async function classifyWithLLM(): Promise<PageContext> {
     console.log('[DarkScope][LLM] Raw classification payload', {
       rawPreview: previewText(raw)
     });
-    const cleaned = stripMarkdownFences(raw);
-    let parsed: { type?: string };
-
-    try {
-      parsed = JSON.parse(cleaned) as { type?: string };
-    } catch (error) {
-      console.error('[DarkScope][LLM] Failed to parse LLM JSON', {
-        rawPreview: previewText(cleaned),
-        error
-      });
-      return {
-        type: 'generic',
-        confidence: 'low',
-        signals: ['llm_error:invalid_json']
-      };
-    }
-
-    const pageType = typeof parsed.type === 'string' ? parsePageType(parsed.type) : null;
+    const pageType = extractPageTypeFromResponse(raw);
 
     if (pageType === null) {
-      console.error('[DarkScope][LLM] Parsed JSON did not contain a valid page type', parsed);
+      console.error('[DarkScope][LLM] LLM response did not contain a valid page type', {
+        rawPreview: previewText(raw)
+      });
       return {
         type: 'generic',
         confidence: 'low',
@@ -502,6 +529,11 @@ export async function classifyPageContext(): Promise<PageContext> {
   if (winner === undefined || winner.total < 3 || (isConflicted && winner.layer1 === 0)) {
     const result = await classifyWithLLM();
     console.log('LLM result:', result);
+
+    if (shouldKeepHeuristicWinner(winner, result)) {
+      return toPageContextFromWinner(winner, isConflicted);
+    }
+
     return result;
   // }
   //   return classifyWithLLM();
@@ -512,13 +544,14 @@ export async function classifyPageContext(): Promise<PageContext> {
   if (derivedConfidence === 'low') {
     const result = await classifyWithLLM();
     console.log('LLM result:', result);
+
+    if (shouldKeepHeuristicWinner(winner, result)) {
+      return toPageContextFromWinner(winner, isConflicted);
+    }
+
     return result;
     // return classifyWithLLM();
   }
 
-  return {
-    type: winner.type,
-    confidence: isConflicted ? 'medium' : derivedConfidence,
-    signals: winner.signals
-  };
+  return toPageContextFromWinner(winner, isConflicted);
 }

@@ -11,7 +11,7 @@ export const K_QUESTIONS: KQuestion[] = [
     weight: 3,
     principles: { P3: 1, P5: 1, P7: 1 },
     relevantContexts: ['account_settings']
-  }
+  },
   {
     id: 'K-59',
     label: 'Ar sąsajoje yra atgalinio skaičiavimo laikmatis, rodantis riboto laiko prieigą ar nuolaidą prekei ar paslaugai?',
