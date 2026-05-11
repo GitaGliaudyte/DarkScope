@@ -6,9 +6,19 @@ import {
   LOW_SCORE_THRESHOLD,
   MEDIUM_SCORE_THRESHOLD
 } from './constants';
-import { RuleSignals } from './types';
 
-export function computeScore(signals: RuleSignals): number {
+export type ApplicabilitySignal = 'main' | 'subsection' | 'ambiguous';
+
+export interface K11ScoringSignals {
+  hasPrivacyInNavigation: boolean;
+  hasPrivacyInBodyOnly: boolean;
+  navigationCategoryCount: number;
+  urlSignal: ApplicabilitySignal;
+  navigationSignal: ApplicabilitySignal;
+}
+
+export function computeScore(signals: K11ScoringSignals): number {
+  console.log('signals:', signals);
   if (signals.hasPrivacyInNavigation) {
     return 0;
   }
