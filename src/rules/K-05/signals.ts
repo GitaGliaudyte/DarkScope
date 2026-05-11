@@ -1,10 +1,12 @@
 import { generateUniqueSelector, normalizeWhitespace } from '../../engine/normalizedElements';
 import {
-  CANDIDATE_SELECTOR,
-  EMAIL_OR_USERNAME_PATTERN,
-  MAX_PROBE_COUNT,
-  PAYMENT_FIELD_PATTERN,
-  SUPPLEMENTAL_ZONE_SELECTOR
+  DIRECT_BLOCKING_SELECTOR,
+  MAX_CANDIDATES,
+  MIN_TEXT_LENGTH,
+  NAVIGATION_SELECTOR,
+  SUPPLEMENTAL_ZONE_SELECTOR,
+  TIER_1_SELECTOR,
+  TIER_2_SELECTOR
 } from './constants';
 import { ElementZone, ProbeCandidate } from './types';
 
@@ -12,138 +14,109 @@ function detectZone(element: HTMLElement): ElementZone {
   return element.closest(SUPPLEMENTAL_ZONE_SELECTOR) === null ? 'primary' : 'supplemental';
 }
 
-function getFieldIdentifiers(element: HTMLElement): string {
-  return [
-    element.getAttribute('name'),
-    element.getAttribute('id'),
-    element.getAttribute('autocomplete')
-  ]
-    .map((value) => normalizeWhitespace(value ?? '').toLowerCase())
-    .filter((value) => value.length > 0)
-    .join(' ');
-}
+function getDomDepth(element: HTMLElement): number {
+  let depth = 0;
+  let current: HTMLElement | null = element.parentElement;
 
-function isPasswordField(element: HTMLElement): boolean {
-  return element instanceof HTMLInputElement && element.type.toLowerCase() === 'password';
-}
-
-function isPaymentField(element: HTMLElement): boolean {
-  return PAYMENT_FIELD_PATTERN.test(getFieldIdentifiers(element));
-}
-
-function isEmailOrUsernameField(element: HTMLElement): boolean {
-  if (element instanceof HTMLInputElement && element.type.toLowerCase() === 'email') {
-    return true;
+  while (current !== null) {
+    depth += 1;
+    current = current.parentElement;
   }
 
-  return EMAIL_OR_USERNAME_PATTERN.test(getFieldIdentifiers(element));
+  return depth;
 }
 
-function isCandidateVisible(element: HTMLElement): boolean {
+function isEligibleCandidate(element: HTMLElement, allowShortText = false): boolean {
+  if (!element.isConnected) {
+    return false;
+  }
+
+  if (element.closest(NAVIGATION_SELECTOR) !== null) {
+    return false;
+  }
+
+  const textLength = (element.textContent ?? '').trim().length;
+
+  if (allowShortText ? textLength === 0 : textLength < MIN_TEXT_LENGTH) {
+    return false;
+  }
+
   const rect = element.getBoundingClientRect();
-  return element.offsetParent !== null && rect.width > 0 && rect.height > 0;
+  return rect.width > 0 && rect.height > 0;
 }
 
-function isCandidateEligible(element: HTMLElement): boolean {
-  if (
-    (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) &&
-    (element.disabled || element.readOnly)
-  ) {
-    return false;
+function compareCandidateElements(left: HTMLElement, right: HTMLElement): number {
+  const depthDifference = getDomDepth(right) - getDomDepth(left);
+
+  if (depthDifference !== 0) {
+    return depthDifference;
   }
 
-  if (element.hasAttribute('disabled') || element.hasAttribute('readonly')) {
-    return false;
+  const textLengthDifference = (left.textContent ?? '').trim().length - (right.textContent ?? '').trim().length;
+
+  if (textLengthDifference !== 0) {
+    return textLengthDifference;
   }
 
-  return isCandidateVisible(element);
+  const leftRect = left.getBoundingClientRect();
+  const rightRect = right.getBoundingClientRect();
+  return leftRect.width * leftRect.height - rightRect.width * rightRect.height;
 }
 
-function getCandidatePriority(element: HTMLElement): number {
-  if (isPasswordField(element) || isPaymentField(element)) {
-    return 0;
-  }
-
-  if (isEmailOrUsernameField(element)) {
-    return 1;
-  }
-
-  return 2;
+function getDirectBlockingElements(): HTMLElement[] {
+  return Array.from(document.querySelectorAll<HTMLElement>(DIRECT_BLOCKING_SELECTOR))
+    .filter((element) => isEligibleCandidate(element, true))
+    .sort(compareCandidateElements);
 }
 
-function getEvidenceText(element: HTMLElement): string {
-  const preferredText = [
-    element.getAttribute('name'),
-    element.getAttribute('id'),
-    element.getAttribute('placeholder'),
-    element.getAttribute('aria-label')
-  ]
-    .map((value) => normalizeWhitespace(value ?? ''))
-    .find((value) => value.length > 0);
+function isSelectionOverlapping(element: HTMLElement, selected: ProbeCandidate[]): boolean {
+  return selected.some(
+    (candidate) =>
+      candidate.element === element || candidate.element.contains(element) || element.contains(candidate.element)
+  );
+}
 
-  if (preferredText !== undefined) {
-    return preferredText.slice(0, 80);
+function createCandidate(element: HTMLElement): ProbeCandidate {
+  return {
+    element,
+    selector: generateUniqueSelector(element),
+    text: normalizeWhitespace(element.textContent ?? '').slice(0, 80),
+    zone: detectZone(element)
+  };
+}
+
+function selectNonOverlappingCandidates(elements: HTMLElement[], selected: ProbeCandidate[]): ProbeCandidate[] {
+  const nextSelected = [...selected];
+
+  for (const element of elements) {
+    if (isSelectionOverlapping(element, nextSelected)) {
+      continue;
+    }
+
+    nextSelected.push(createCandidate(element));
   }
 
-  const tag = element.tagName.toLowerCase();
-
-  if (element instanceof HTMLInputElement) {
-    const type = normalizeWhitespace(element.getAttribute('type') ?? '');
-    return type.length > 0 ? `${tag}[type=${type}]` : tag;
-  }
-
-  if (element instanceof HTMLTextAreaElement) {
-    return 'textarea';
-  }
-
-  return `${tag}[contenteditable=true]`;
+  return nextSelected;
 }
 
 export function collectCandidates(): ProbeCandidate[] {
-  return Array.from(document.querySelectorAll<HTMLElement>(CANDIDATE_SELECTOR))
-    .filter((element) => element.isConnected)
-    .filter(isCandidateEligible)
-    .map((element, index) => ({
-      element,
-      selector: generateUniqueSelector(element),
-      label: getEvidenceText(element),
-      priority: getCandidatePriority(element),
-      index,
-      zone: detectZone(element),
-      passwordField: isPasswordField(element),
-      paymentField: isPaymentField(element),
-      emailOrUsernameField: isEmailOrUsernameField(element)
-    }))
-    .sort((left, right) => {
-      if (left.priority !== right.priority) {
-        return left.priority - right.priority;
-      }
+  const directBlockingCandidates = selectNonOverlappingCandidates(getDirectBlockingElements(), []);
 
-      return left.index - right.index;
-    })
-    .slice(0, MAX_PROBE_COUNT);
-}
-
-export function getFieldDescription(candidate: ProbeCandidate): string {
-  if (candidate.passwordField) {
-    return 'password field';
+  if (directBlockingCandidates.length >= MAX_CANDIDATES) {
+    return directBlockingCandidates.slice(0, MAX_CANDIDATES);
   }
 
-  if (candidate.paymentField) {
-    return 'payment field';
+  const tier1Elements = Array.from(document.querySelectorAll<HTMLElement>(TIER_1_SELECTOR))
+    .filter((element) => isEligibleCandidate(element))
+    .sort(compareCandidateElements);
+  const tier1Candidates = selectNonOverlappingCandidates(tier1Elements, directBlockingCandidates);
+
+  if (tier1Candidates.length >= 5) {
+    return tier1Candidates.slice(0, MAX_CANDIDATES);
   }
 
-  if (candidate.emailOrUsernameField) {
-    return 'email or username field';
-  }
-
-  if (candidate.element instanceof HTMLTextAreaElement) {
-    return 'textarea';
-  }
-
-  if (candidate.element.isContentEditable) {
-    return 'editable region';
-  }
-
-  return 'input field';
+  const tier2Elements = Array.from(document.querySelectorAll<HTMLElement>(TIER_2_SELECTOR))
+    .filter((element) => isEligibleCandidate(element))
+    .sort(compareCandidateElements);
+  return selectNonOverlappingCandidates(tier2Elements, tier1Candidates).slice(0, MAX_CANDIDATES);
 }

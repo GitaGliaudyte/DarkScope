@@ -3,16 +3,22 @@ export type ElementZone = 'primary' | 'supplemental';
 export interface ProbeCandidate {
   element: HTMLElement;
   selector: string;
-  text: string;
+  label: string;
+  priority: number;
+  index: number;
   zone: ElementZone;
+  passwordField: boolean;
+  paymentField: boolean;
+  emailOrUsernameField: boolean;
 }
 
 export interface CandidateSignals {
-  copyEventBlocked: boolean;
-  cssSelectionBlocked: boolean;
+  pasteBlocked: boolean;
+  copyBlocked: boolean;
+  inlineOnPasteBlocked: boolean;
   inlineOnCopyBlocked: boolean;
-  inlineOnSelectStartBlocked: boolean;
-  inlineStyleSelectionBlocked: boolean;
+  autocompleteOff: boolean;
+  dragFillBlocked: boolean;
 }
 
 export interface FlaggedElement extends ProbeCandidate {

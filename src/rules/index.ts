@@ -3,8 +3,9 @@ import { RuleDefinition } from '../engine/types';
 import K04Rule from './K-04';
 import K02Rule from './K-02';
 import K05Rule from './K-05';
+import K06Rule from './K-06';
 import K59Rule from './K-59';
 
-export const rules: RuleDefinition[] = [K02Rule, K04Rule, K05Rule, K59Rule];
+export const rules: RuleDefinition[] = [K02Rule, K04Rule, K05Rule, K06Rule, K59Rule];
 
 export default rules;

@@ -3,17 +3,23 @@ import { createErrorResult } from '../../engine/ruleEngine';
 import { AnalysisContext, RuleDefinition, RuleResult } from '../../engine/types';
 import { buildVisualTarget, createRuleResult } from '../../rules-utilities/resultUtils';
 import { RULE_ID } from './constants';
-import { probeCandidate } from './probing';
-import { buildReason, getConfidence, getContextualImpact, getProbability, getStrongerImpact } from './scoring';
 import { collectCandidates } from './signals';
+import { probeCandidate } from './probing';
+import { buildReason, downgradeImpact, getBaseImpact, getConfidence, getProbability } from './scoring';
 import { FlaggedElement } from './types';
 
-function detectBlockedTextCopy(_context: AnalysisContext): RuleResult {
+function detectBlockedCopyPaste(_context: AnalysisContext): RuleResult {
   try {
     const candidates = collectCandidates();
-    const flaggedElements = candidates
-      .map(probeCandidate)
-      .filter((candidate): candidate is FlaggedElement => candidate !== null);
+    const flaggedElements: FlaggedElement[] = [];
+
+    for (const candidate of candidates) {
+      const flagged = probeCandidate(candidate);
+
+      if (flagged !== null) {
+        flaggedElements.push(flagged);
+      }
+    }
 
     if (flaggedElements.length === 0) {
       return createRuleResult({
@@ -27,21 +33,32 @@ function detectBlockedTextCopy(_context: AnalysisContext): RuleResult {
       });
     }
 
+    const evidence: RuleResult['evidence'] = [];
+    const selectors: string[] = [];
     let totalScore = 0;
     let strongestImpact: RuleResult['impact'] = 'low';
-    const selectors: string[] = [];
-    const evidence: RuleResult['evidence'] = [];
+    let hasPrimaryZoneHit = false;
 
     for (const flagged of flaggedElements) {
-      const contextualImpact = getContextualImpact(flagged);
+      const baseImpact = getBaseImpact(flagged);
+      const contextualImpact = flagged.zone === 'supplemental' ? downgradeImpact(baseImpact) : baseImpact;
+
+      if (baseImpact === 'high') {
+        strongestImpact = 'high';
+      } else if (strongestImpact === 'low') {
+        strongestImpact = 'medium';
+      }
+
+      if (flagged.zone === 'primary') {
+        hasPrimaryZoneHit = true;
+      }
 
       totalScore += flagged.score;
-      strongestImpact = getStrongerImpact(strongestImpact, contextualImpact);
       selectors.push(flagged.selector);
       evidence.push({
         selector: flagged.selector,
-        text: flagged.text,
-        reason: buildReason(flagged.element, flagged.signals),
+        text: flagged.label,
+        reason: buildReason(flagged),
         boundingBox: flagged.element.getBoundingClientRect(),
         zone: flagged.zone,
         contextualImpact
@@ -49,31 +66,36 @@ function detectBlockedTextCopy(_context: AnalysisContext): RuleResult {
     }
 
     const cappedScore = Math.min(totalScore, 20);
+    const impact = hasPrimaryZoneHit ? strongestImpact : downgradeImpact(strongestImpact);
 
     return createRuleResult({
       ruleId: RULE_ID,
       detected: cappedScore > 0,
       probability: getProbability(cappedScore),
       confidence: getConfidence(cappedScore),
-      impact: strongestImpact,
+      impact,
       evidence,
       visualTarget: buildVisualTarget(selectors),
       occurrenceCount: flaggedElements.length
     });
   } catch (error) {
     return createErrorResult(RULE_ID, error);
+  } finally {
+    if (document.body instanceof HTMLElement) {
+      document.body.focus();
+    }
   }
 }
 
-const K05Rule: RuleDefinition = {
+const K06Rule: RuleDefinition = {
   id: RULE_ID,
   pageClassifier: defaultPageClassifier,
   relevantOn: [],
   skipIfNotRelevant: false,
-  relevantContexts: ['product', 'generic', 'account_settings'],
+  relevantContexts: ['account_settings', 'checkout', 'registration'],
   detect(context: AnalysisContext): RuleResult {
-    return detectBlockedTextCopy(context);
+    return detectBlockedCopyPaste(context);
   }
 };
 
-export default K05Rule;
+export default K06Rule;

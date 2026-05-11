@@ -1,11 +1,8 @@
-import { normalizeWhitespace } from '../../engine/normalizedElements';
-import { INLINE_FALSE_HANDLER_PATTERN } from './constants';
+import { INLINE_FALSE_HANDLER_PATTERN, INLINE_USER_SELECT_NONE_PATTERN } from './constants';
 import { CandidateSignals, FlaggedElement, ProbeCandidate } from './types';
 
-type BlockedEventType = 'paste' | 'copy';
-
-function isEventBlocked(element: HTMLElement, eventType: BlockedEventType): boolean {
-  const event = new ClipboardEvent(eventType, {
+function isCopyEventBlocked(element: HTMLElement): boolean {
+  const event = new ClipboardEvent('copy', {
     bubbles: true,
     cancelable: true,
     composed: true
@@ -15,65 +12,65 @@ function isEventBlocked(element: HTMLElement, eventType: BlockedEventType): bool
   return event.defaultPrevented;
 }
 
-function hasInlineFalseHandler(element: HTMLElement, attributeName: 'onpaste' | 'oncopy' | 'ondrop'): boolean {
+function isCssSelectionBlocked(element: HTMLElement): boolean {
+  const style = window.getComputedStyle(element);
+
+  return (
+    style.userSelect === 'none' ||
+    (style as CSSStyleDeclaration & { webkitUserSelect?: string }).webkitUserSelect === 'none'
+  );
+}
+
+function hasInlineFalseHandler(element: HTMLElement, attributeName: 'oncopy' | 'onselectstart'): boolean {
   return INLINE_FALSE_HANDLER_PATTERN.test(element.getAttribute(attributeName) ?? '');
 }
 
-export function probeCandidate(candidate: ProbeCandidate): FlaggedElement | null {
-  candidate.element.focus();
+function hasInlineSelectionStyle(element: HTMLElement): boolean {
+  return INLINE_USER_SELECT_NONE_PATTERN.test((element.getAttribute('style') ?? '').toLowerCase());
+}
 
-  const pasteBlocked = isEventBlocked(candidate.element, 'paste');
-  const copyBlocked = isEventBlocked(candidate.element, 'copy');
-  const inlineOnPasteBlocked = hasInlineFalseHandler(candidate.element, 'onpaste');
-  const inlineOnCopyBlocked = hasInlineFalseHandler(candidate.element, 'oncopy');
-  const autocompleteOff =
-    (candidate.passwordField || candidate.paymentField) &&
-    normalizeWhitespace(candidate.element.getAttribute('autocomplete') ?? '').toLowerCase() === 'off';
-  const dragFillBlocked =
-    candidate.element instanceof HTMLInputElement &&
-    (hasInlineFalseHandler(candidate.element, 'ondrop') ||
-      normalizeWhitespace(candidate.element.getAttribute('draggable') ?? '').toLowerCase() === 'false');
-
-  const signals: CandidateSignals = {
-    pasteBlocked,
-    copyBlocked,
-    inlineOnPasteBlocked,
-    inlineOnCopyBlocked,
-    autocompleteOff,
-    dragFillBlocked
+function getCandidateSignals(element: HTMLElement): CandidateSignals {
+  return {
+    copyEventBlocked: isCopyEventBlocked(element),
+    cssSelectionBlocked: isCssSelectionBlocked(element),
+    inlineOnCopyBlocked: hasInlineFalseHandler(element, 'oncopy'),
+    inlineOnSelectStartBlocked: hasInlineFalseHandler(element, 'onselectstart'),
+    inlineStyleSelectionBlocked: hasInlineSelectionStyle(element)
   };
+}
 
-  const hasFlaggingSignal =
-    pasteBlocked || copyBlocked || inlineOnPasteBlocked || inlineOnCopyBlocked || dragFillBlocked;
-
-  if (!hasFlaggingSignal) {
-    return null;
-  }
-
+function getSignalScore(signals: CandidateSignals): number {
   let score = 0;
 
-  if (pasteBlocked) {
+  if (signals.copyEventBlocked) {
     score += 3;
   }
 
-  if (copyBlocked) {
+  if (signals.cssSelectionBlocked) {
+    score += 3;
+  }
+
+  if (signals.inlineOnCopyBlocked) {
     score += 2;
   }
 
-  if (inlineOnPasteBlocked) {
+  if (signals.inlineOnSelectStartBlocked) {
     score += 2;
   }
 
-  if (inlineOnCopyBlocked) {
+  if (signals.inlineStyleSelectionBlocked) {
     score += 1;
   }
 
-  if (autocompleteOff) {
-    score += 1;
-  }
+  return score;
+}
 
-  if (dragFillBlocked) {
-    score += 1;
+export function probeCandidate(candidate: ProbeCandidate): FlaggedElement | null {
+  const signals = getCandidateSignals(candidate.element);
+  const score = getSignalScore(signals);
+
+  if (score === 0) {
+    return null;
   }
 
   return {
