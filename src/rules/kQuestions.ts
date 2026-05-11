@@ -21,7 +21,7 @@ export const K_QUESTIONS: KQuestion[] = [
   },
   {
     id: 'K-05',
-    label: 'Does the interface block text copy functionality on informational content?',
+    label: 'Does the system block text copy functionality on informational content?',
     weight: 2,
     principles: { P3: 1, P4: 0.5 },
     relevantContexts: ['product', 'generic', 'account_settings']
