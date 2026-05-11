@@ -20,6 +20,13 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product', 'registration', 'account_settings', 'checkout', 'cart']
   },
   {
+    id: 'K-05',
+    label: 'Does the system prevent users from copying and pasting in input fields?',
+    weight: 2,
+    principles: { P3: 1, P4: 0.5 },
+    relevantContexts: ['account_settings', 'checkout', 'registration']
+  },
+  {
     id: 'K-59',
     label: 'Is there a countdown timer in the interface showing limited-time access or a discount for a product or service?',
     weight: 2,
