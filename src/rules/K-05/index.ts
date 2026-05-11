@@ -2,18 +2,11 @@ import { defaultPageClassifier } from '../../engine/pageClassifier';
 import { createErrorResult } from '../../engine/ruleEngine';
 import { AnalysisContext, RuleDefinition, RuleResult } from '../../engine/types';
 import { buildVisualTarget, createRuleResult } from '../../rules-utilities/resultUtils';
-import {
-  buildReason,
-  collectCandidates,
-  downgradeImpact,
-  getBaseImpact,
-  getConfidence,
-  getProbability,
-  probeCandidate,
-  type FlaggedElement
-} from './helpers';
-
-const RULE_ID = 'K-05';
+import { RULE_ID } from './constants';
+import { collectCandidates } from './signals';
+import { probeCandidate } from './probing';
+import { buildReason, downgradeImpact, getBaseImpact, getConfidence, getProbability } from './scoring';
+import { FlaggedElement } from './types';
 
 function detectBlockedCopyPaste(_context: AnalysisContext): RuleResult {
   try {
