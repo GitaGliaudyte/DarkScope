@@ -1,66 +1,15 @@
-// This file detects broken links that block access to important information or key flows.
-import { defaultPageClassifier } from '../engine/pageClassifier';
-import { normalizeWhitespace } from '../engine/normalizedElements';
-import { createErrorResult } from '../engine/ruleEngine';
-import { AnalysisContext, Confidence, RuleDefinition, RuleResult } from '../engine/types';
-import { buildVisualTarget, createRuleResult } from '../rules-utilities/resultUtils';
-
-const RULE_ID = 'K-04';
-const MAX_URLS_TO_CHECK = 20;
-const LOW_SIGNAL_CONTAINER_SELECTOR =
-  'header, nav, [role="navigation"], [class*="breadcrumb"], [aria-label*="breadcrumb"], [class*="pagination"], [class*="sort"], [class*="filter"], [class*="menu"]';
-const SUPPLEMENTAL_ZONE_SELECTOR =
-  'aside, footer, [class*="recommend"], [class*="related"], [class*="suggest"], [class*="sidebar"], [class*="upsell"], [class*="widget"]';
-const IMPORTANT_KEYWORDS = [
-  'terms',
-  'privacy',
-  'cookie',
-  'cookies',
-  'return',
-  'returns',
-  'refund',
-  'refunds',
-  'exchange',
-  'warranty',
-  'support',
-  'help',
-  'customer service',
-  'service',
-  'contact',
-  'about',
-  'shipping',
-  'delivery',
-  'track',
-  'tracking',
-  'order',
-  'policy',
-  'policies',
-  'legal',
-  'faq',
-  'questions',
-  'delete',
-  'cancel',
-  'unsubscribe',
-  'billing',
-  'payment',
-  'checkout',
-  'cart',
-  'register',
-  'registration',
-  'sign up',
-  'sign in',
-  'login',
-  'account',
-  'settings',
-  'profile',
-  'subscription',
-  'manage subscription',
-  'accessibility',
-  'security',
-  'complaint',
-  'complaints',
-  'gdpr'
-] as const;
+import { normalizeWhitespace } from '../../engine/normalizedElements';
+import { createErrorResult } from '../../engine/ruleEngine';
+import { AnalysisContext, RuleResult } from '../../engine/types';
+import { buildVisualTarget, createRuleResult } from '../../rules-utilities/resultUtils';
+import {
+  IMPORTANT_KEYWORDS,
+  LOW_SIGNAL_CONTAINER_SELECTOR,
+  MAX_URLS_TO_CHECK,
+  RULE_ID,
+  SUPPLEMENTAL_ZONE_SELECTOR
+} from './constants';
+import { downgradeImpact, getConfidence, getProbability, impactRank } from './scoring';
 
 type ElementZone = 'primary' | 'supplemental';
 
@@ -113,7 +62,6 @@ function resolveHttpUrl(rawHref: string, baseUrl: string): URL | null {
       return null;
     }
 
-    // Fragments do not affect HTTP responses and should not create duplicate probes.
     resolved.hash = '';
     return resolved;
   } catch {
@@ -136,58 +84,6 @@ function isLowSignalContainer(element: HTMLAnchorElement): boolean {
 
 function isSameDocumentVariant(candidateUrl: URL, pageUrl: URL): boolean {
   return candidateUrl.origin === pageUrl.origin && candidateUrl.pathname === pageUrl.pathname;
-}
-
-function downgradeImpact(impact: RuleResult['impact']): RuleResult['impact'] {
-  if (impact === 'high') {
-    return 'medium';
-  }
-
-  if (impact === 'medium') {
-    return 'low';
-  }
-
-  return 'low';
-}
-
-function impactRank(impact: RuleResult['impact']): number {
-  if (impact === 'high') {
-    return 3;
-  }
-
-  if (impact === 'medium') {
-    return 2;
-  }
-
-  return 1;
-}
-
-function getConfidence(brokenLinkCount: number): Confidence {
-  if (brokenLinkCount >= 6) {
-    return 'high';
-  }
-
-  if (brokenLinkCount >= 3) {
-    return 'medium';
-  }
-
-  return 'low';
-}
-
-function getProbability(brokenLinkCount: number): number {
-  if (brokenLinkCount >= 6) {
-    return 1;
-  }
-
-  if (brokenLinkCount >= 3) {
-    return 0.75;
-  }
-
-  if (brokenLinkCount >= 1) {
-    return 0.5;
-  }
-
-  return 0;
 }
 
 function buildLinkGroups(context: AnalysisContext): LinkGroup[] {
@@ -337,7 +233,7 @@ function requestLinkCheck(url: string): Promise<LinkCheckResponse> {
   });
 }
 
-async function detectBrokenLinks(context: AnalysisContext): Promise<RuleResult> {
+export async function detectBrokenLinks(context: AnalysisContext): Promise<RuleResult> {
   try {
     const selectedGroups = selectLinksToCheck(context);
 
@@ -437,16 +333,3 @@ async function detectBrokenLinks(context: AnalysisContext): Promise<RuleResult> 
     return createErrorResult(RULE_ID, error);
   }
 }
-
-const K04Rule: RuleDefinition = {
-  id: RULE_ID,
-  pageClassifier: defaultPageClassifier,
-  relevantOn: [],
-  skipIfNotRelevant: false,
-  relevantContexts: ['product', 'registration', 'account_settings', 'checkout', 'cart'],
-  detect(context: AnalysisContext): RuleResult {
-    return detectBrokenLinks(context) as unknown as RuleResult;
-  }
-};
-
-export default K04Rule;
