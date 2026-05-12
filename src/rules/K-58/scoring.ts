@@ -1,9 +1,9 @@
 import { Confidence, NormalizedElement } from '../../engine/types';
-import { EXCLUDED_CONTEXT, HIGH_DEMAND_PATTERNS } from './constants';
+import { EXCLUDED_CONTEXT, USER_ACTIVITY_PATTERNS } from './constants';
 
-export function matchesHighDemandPattern(text: string): boolean {
+export function matchesUserActivityPattern(text: string): boolean {
   const normalized = text.toLowerCase();
-  return HIGH_DEMAND_PATTERNS.some((pattern) => pattern.test(normalized));
+  return USER_ACTIVITY_PATTERNS.some((pattern) => pattern.test(normalized));
 }
 
 function isInExcludedContext(element: HTMLElement): boolean {

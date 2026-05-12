@@ -6,8 +6,9 @@ import K05Rule from './K-05';
 import K06Rule from './K-06';
 import K53Rule from './K-53';
 import K55Rule from './K-55';
+import K58Rule from './K-58';
 import K59Rule from './K-59';
 
-export const rules: RuleDefinition[] = [K02Rule, K04Rule, K05Rule, K06Rule, K53Rule, K55Rule, K59Rule];
+export const rules: RuleDefinition[] = [K02Rule, K04Rule, K05Rule, K06Rule, K53Rule, K55Rule, K58Rule, K59Rule];
 
 export default rules;

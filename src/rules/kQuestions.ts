@@ -48,6 +48,13 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product', 'cart', 'checkout']
   },
   {
+    id: 'K-58',
+    label: 'Does the interface provide information about the activity of other (real or fictional) users (e.g. "X just bought Y", "N users are viewing this item")?',
+    weight: 2,
+    principles: { P2: 0.5, P3: 0.5, P6: 0.5 },
+    relevantContexts: ['product', 'cart', 'checkout']
+  },
+  {
     id: 'K-59',
     label: 'Is there a countdown timer in the interface showing limited-time access or a discount for a product or service?',
     weight: 2,

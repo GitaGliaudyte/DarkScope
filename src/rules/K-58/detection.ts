@@ -2,9 +2,9 @@ import { createNormalizedElement, isVisibleElement } from '../../engine/normaliz
 import { AnalysisContext, NormalizedElement, RuleResult } from '../../engine/types';
 import { buildVisualTarget, clampProbability, createRuleResult } from '../../rules-utilities/resultUtils';
 import { LIVE_TEXT_SELECTOR, RULE_ID } from './constants';
-import { getConfidence, matchesHighDemandPattern, scoreSignals } from './scoring';
+import { getConfidence, matchesUserActivityPattern, scoreSignals } from './scoring';
 
-interface HighDemandHit {
+interface UserActivityHit {
   selector: string;
   element: HTMLElement;
   score: number;
@@ -12,28 +12,28 @@ interface HighDemandHit {
   boundingBox: DOMRect | null;
 }
 
-function isHighDemandCandidate(element: NormalizedElement): boolean {
-  return matchesHighDemandPattern(element.text);
+function isUserActivityCandidate(element: NormalizedElement): boolean {
+  return matchesUserActivityPattern(element.text);
 }
 
-export function findHighDemandCandidates(snapshot: AnalysisContext['snapshot']): NormalizedElement[] {
-  const snapshotCandidates = snapshot.elements.filter(isHighDemandCandidate);
+export function findUserActivityCandidates(snapshot: AnalysisContext['snapshot']): NormalizedElement[] {
+  const snapshotCandidates = snapshot.elements.filter(isUserActivityCandidate);
   const liveTextCandidates = Array.from(document.querySelectorAll<HTMLElement>(LIVE_TEXT_SELECTOR))
     .filter((element) => element.isConnected && isVisibleElement(element))
     .map((element) => createNormalizedElement(element))
     .filter((element) => element.text.length > 0)
-    .filter((element) => matchesHighDemandPattern(element.text));
+    .filter((element) => matchesUserActivityPattern(element.text));
 
   const merged = [...snapshotCandidates, ...liveTextCandidates];
   return Array.from(new Map(merged.map((candidate) => [candidate.selector, candidate])).values());
 }
 
-export function detectHighDemand(context: AnalysisContext): RuleResult {
-  const candidates = findHighDemandCandidates(context.snapshot);
+export function detectUserActivity(context: AnalysisContext): RuleResult {
+  const candidates = findUserActivityCandidates(context.snapshot);
   const evidence: RuleResult['evidence'] = [];
   const selectors = new Set<string>();
   let highestScore = 0;
-  const hits: HighDemandHit[] = [];
+  const hits: UserActivityHit[] = [];
 
   for (const candidate of candidates) {
     const liveElement = document.querySelector<HTMLElement>(candidate.selector);
@@ -68,7 +68,7 @@ export function detectHighDemand(context: AnalysisContext): RuleResult {
     evidence.push({
       selector: hit.selector,
       text: hit.text,
-      reason: `High demand signal scored ${hit.score}/10`,
+      reason: `User activity signal scored ${hit.score}/10`,
       boundingBox: hit.boundingBox
     });
   }
