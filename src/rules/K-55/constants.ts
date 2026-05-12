@@ -11,7 +11,6 @@ export const QUANTITY_PATTERNS = [
   /few\s+left/i,
   /\d+\s+remaining/i,
   /only\s+a\s+few\s+left/i,
-  /selling\s+fast/i,
   /almost\s+gone/i,
   /out\s+of\s+stock\s+soon/i,
   /\d+\s+in\s+stock/i,
@@ -22,6 +21,6 @@ export const QUANTITY_PATTERNS = [
 
 export const STOCK_IDENTIFIER_PATTERN = /stock|quantity|inventory|availability|scarcity|left|remaining/;
 
-export const URGENCY_CLASS_PATTERN = /\b(?:urgent|alert|warning|scarcity|stock|low-stock|out-of-stock|hurry|countdown|timer|badge|highlight|emphasis|promo|flash)\b/;
+export const URGENCY_CLASS_PATTERN = /\b(?:urgent|scarcity|stock|low-stock|out-of-stock|hurry|badge|highlight|emphasis|promo|flash)\b/;
 
 export const EXCLUDED_CONTEXT = ['opening hours', 'schedule', 'timetable', 'business hours', 'contact hours'] as const;
