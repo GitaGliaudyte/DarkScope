@@ -34,6 +34,13 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['account_settings', 'checkout', 'registration']
   },
   {
+    id: 'K-55',
+    label: 'Is there a visually highlighted information provided with the product that its quantity is limited (e.g. the statement "only 5 left", highlighted in red)?',
+    weight: 2,
+    principles: { P2: 0.5, P3: 0.5, P6: 0.5 },
+    relevantContexts: ['product', 'cart', 'checkout']
+  },
+  {
     id: 'K-59',
     label: 'Is there a countdown timer in the interface showing limited-time access or a discount for a product or service?',
     weight: 2,
