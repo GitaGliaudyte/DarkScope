@@ -41,6 +41,13 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['account_settings']
   },
   {
+    id: 'K-12',
+    label: 'When a user clicks a UI element that looks like a regular element, are they redirected to advertising content?',
+    weight: 2,
+    principles: { P4: 1, P7: 0.5 },
+    relevantContexts: ['product', 'generic']
+  },
+  {
     id: 'K-51',
     label: 'Are videos or other content playing automatically?',
     weight: 2,
