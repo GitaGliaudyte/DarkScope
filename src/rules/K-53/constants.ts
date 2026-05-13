@@ -13,6 +13,7 @@ export const HIGH_DEMAND_PATTERNS = [
   /back\s+in\s+demand/i,
   /hot\s+(?:item|product|seller)/i,
   /top\s+seller/i,
+  /top\s+selling/i,
   /best\s+seller/i,
   /bestseller/i,
   /most\s+popular/i,
