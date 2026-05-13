@@ -34,6 +34,13 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['account_settings', 'checkout', 'registration']
   },
   {
+    id: 'K-51',
+    label: 'Are videos or other content playing automatically?',
+    weight: 2,
+    principles: { P2: 0.5, P3: 0.5, P6: 0.5 },
+    relevantContexts: ['product']
+  },
+  {
     id: 'K-53',
     label: 'Does the page contain text about high demand (for example, "High demand," "selling out quickly")?',
     weight: 2,
