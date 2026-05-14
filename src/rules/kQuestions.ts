@@ -34,6 +34,20 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['account_settings', 'checkout', 'registration']
   },
   {
+    id: 'K-11',
+    label: 'Are privacy settings reachable from the main account settings page?',
+    weight: 2,
+    principles: { P1: 1, P3: 0.5, P5: 1 },
+    relevantContexts: ['account_settings']
+  },
+  {
+    id: 'K-13',
+    label: 'Are the advertising labels of an element not visually distinguished?',
+    weight: 2,
+    principles: { P4: 1, P7: 0.5 },
+    relevantContexts: ['product']
+  },
+  {
     id: 'K-51',
     label: 'Are videos or other content playing automatically?',
     weight: 2,

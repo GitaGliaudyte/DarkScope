@@ -1,6 +1,6 @@
 import { normalizeWhitespace } from '../../engine/normalizedElements';
 import { INLINE_FALSE_HANDLER_PATTERN } from './constants';
-import { CandidateSignals, FlaggedElement, ProbeCandidate } from './types';
+import { RuleCandidate, RuleFinding, RuleSignals } from './types';
 
 type BlockedEventType = 'paste' | 'copy';
 
@@ -19,7 +19,7 @@ function hasInlineFalseHandler(element: HTMLElement, attributeName: 'onpaste' | 
   return INLINE_FALSE_HANDLER_PATTERN.test(element.getAttribute(attributeName) ?? '');
 }
 
-export function probeCandidate(candidate: ProbeCandidate): FlaggedElement | null {
+export function probeCandidate(candidate: RuleCandidate): RuleFinding | null {
   candidate.element.focus();
 
   const pasteBlocked = isEventBlocked(candidate.element, 'paste');
@@ -34,7 +34,7 @@ export function probeCandidate(candidate: ProbeCandidate): FlaggedElement | null
     (hasInlineFalseHandler(candidate.element, 'ondrop') ||
       normalizeWhitespace(candidate.element.getAttribute('draggable') ?? '').toLowerCase() === 'false');
 
-  const signals: CandidateSignals = {
+  const signals: RuleSignals = {
     pasteBlocked,
     copyBlocked,
     inlineOnPasteBlocked,

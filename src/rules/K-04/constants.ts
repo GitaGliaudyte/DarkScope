@@ -1,5 +1,5 @@
 export const RULE_ID = 'K-04';
-export const MAX_URLS_TO_CHECK = 20;
+export const MAX_SAME_ORIGIN_URLS_TO_CHECK = 40;
 export const LOW_SIGNAL_CONTAINER_SELECTOR =
   'header, nav, [role="navigation"], [class*="breadcrumb"], [aria-label*="breadcrumb"], [class*="pagination"], [class*="sort"], [class*="filter"], [class*="menu"]';
 export const SUPPLEMENTAL_ZONE_SELECTOR =

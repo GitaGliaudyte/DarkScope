@@ -6,9 +6,9 @@ import {
   PAYMENT_FIELD_PATTERN,
   SUPPLEMENTAL_ZONE_SELECTOR
 } from './constants';
-import { ElementZone, ProbeCandidate } from './types';
+import { RuleCandidate, RuleZone } from './types';
 
-function detectZone(element: HTMLElement): ElementZone {
+function detectZone(element: HTMLElement): RuleZone {
   return element.closest(SUPPLEMENTAL_ZONE_SELECTOR) === null ? 'primary' : 'supplemental';
 }
 
@@ -99,7 +99,7 @@ function getEvidenceText(element: HTMLElement): string {
   return `${tag}[contenteditable=true]`;
 }
 
-export function collectCandidates(): ProbeCandidate[] {
+export function collectCandidates(): RuleCandidate[] {
   return Array.from(document.querySelectorAll<HTMLElement>(CANDIDATE_SELECTOR))
     .filter((element) => element.isConnected)
     .filter(isCandidateEligible)
@@ -124,7 +124,7 @@ export function collectCandidates(): ProbeCandidate[] {
     .slice(0, MAX_PROBE_COUNT);
 }
 
-export function getFieldDescription(candidate: ProbeCandidate): string {
+export function getFieldDescription(candidate: RuleCandidate): string {
   if (candidate.passwordField) {
     return 'password field';
   }

@@ -1,6 +1,7 @@
 import { AnalysisContext, Confidence } from '../../engine/types';
 import { PROFILE_FIELD_PATTERN, EMAIL_TEXT_SIGNALS, NOTIFICATION_TEXT_SIGNALS, PASSWORD_TEXT_SIGNALS } from './constants';
-import { DeletionSignal, HiddenDeletionSignal, getInteractiveElementCount } from './signals';
+import { getInteractiveElementCount } from './signals';
+import { DeletionCandidate, HiddenDeletionCandidate } from './types';
 
 function normalizeValue(value: string | null | undefined): string {
   return (value ?? '').trim().toLowerCase();
@@ -42,8 +43,8 @@ function hasProfileEditControls(snapshot: AnalysisContext['snapshot']): boolean 
 }
 
 export function scoreSignals(
-  deletionSignals: DeletionSignal[],
-  hiddenSignals: HiddenDeletionSignal[],
+  deletionSignals: DeletionCandidate[],
+  hiddenSignals: HiddenDeletionCandidate[],
   snapshot: AnalysisContext['snapshot']
 ): number {
   if (getInteractiveElementCount(snapshot) < 3) {

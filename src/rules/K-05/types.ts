@@ -1,13 +1,13 @@
-export type ElementZone = 'primary' | 'supplemental';
+export type RuleZone = 'primary' | 'supplemental';
 
-export interface ProbeCandidate {
+export interface RuleCandidate {
   element: HTMLElement;
   selector: string;
   text: string;
-  zone: ElementZone;
+  zone: RuleZone;
 }
 
-export interface CandidateSignals {
+export interface RuleSignals {
   copyEventBlocked: boolean;
   cssSelectionBlocked: boolean;
   inlineOnCopyBlocked: boolean;
@@ -15,7 +15,7 @@ export interface CandidateSignals {
   inlineStyleSelectionBlocked: boolean;
 }
 
-export interface FlaggedElement extends ProbeCandidate {
-  signals: CandidateSignals;
+export interface RuleFinding extends RuleCandidate {
+  signals: RuleSignals;
   score: number;
 }

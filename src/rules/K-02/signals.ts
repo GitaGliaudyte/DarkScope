@@ -6,19 +6,7 @@ import {
   HIDDEN_CONTAINER_SELECTOR,
   LOW_CONTRAST_CLASS_PATTERN
 } from './constants';
-
-export interface DeletionSignal {
-  element: Element;
-  selector: string;
-  text: string;
-  matchedGroup: 'A' | 'B' | 'C' | 'D';
-  visible: boolean;
-}
-
-export interface HiddenDeletionSignal {
-  element: Element;
-  reason: 'display_none' | 'aria_hidden' | 'visually_hidden';
-}
+import { DeletionCandidate, HiddenDeletionCandidate } from './types';
 
 function normalizeValue(value: string | null | undefined): string {
   return normalizeWhitespace(value ?? '').toLowerCase();
@@ -70,7 +58,7 @@ function getElementSearchFields(element: Element): { text: string; href: string;
   };
 }
 
-function matchDeletionGroup(element: Element): DeletionSignal['matchedGroup'] | null {
+function matchDeletionGroup(element: Element): DeletionCandidate['matchedGroup'] | null {
   const fields = getElementSearchFields(element);
 
   for (const tokens of DELETION_GROUPS.A) {
@@ -132,7 +120,7 @@ function hasDeletionKeywordHref(element: Element): boolean {
   return DELETION_GROUPS.D.some((keyword) => href.includes(keyword));
 }
 
-function classifyHiddenReason(element: Element): HiddenDeletionSignal['reason'] | null {
+function classifyHiddenReason(element: Element): HiddenDeletionCandidate['reason'] | null {
   const htmlElement = element instanceof HTMLElement ? element : null;
   const computedStyle = htmlElement === null ? null : window.getComputedStyle(htmlElement);
   const className = element.getAttribute('class') ?? '';
@@ -179,11 +167,11 @@ function isAccessibleElement(element: Element): boolean {
 }
 
 export function findDeletionCandidates(): {
-  deletionSignals: DeletionSignal[];
-  hiddenSignals: HiddenDeletionSignal[];
+  deletionSignals: DeletionCandidate[];
+  hiddenSignals: HiddenDeletionCandidate[];
 } {
-  const deletionSignals: DeletionSignal[] = [];
-  const hiddenSignals: HiddenDeletionSignal[] = [];
+  const deletionSignals: DeletionCandidate[] = [];
+  const hiddenSignals: HiddenDeletionCandidate[] = [];
   const hiddenKeys = new Set<string>();
 
   for (const element of Array.from(document.querySelectorAll<Element>(DELETION_CONTROL_SELECTOR))) {

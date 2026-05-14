@@ -70,7 +70,7 @@ export interface RuleDefinition {
   relevantOn?: string[];
   skipIfNotRelevant?: boolean;
   relevantContexts?: PageType[];
-  detect: (context: AnalysisContext) => RuleResult;
+  detect: (context: AnalysisContext) => RuleResult | Promise<RuleResult>;
 }
 
 export interface KQuestion {

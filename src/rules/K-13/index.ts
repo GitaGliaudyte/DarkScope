@@ -1,17 +1,17 @@
 import { defaultPageClassifier } from '../../engine/pageClassifier';
 import { AnalysisContext, RuleDefinition, RuleResult } from '../../engine/types';
 import { RULE_ID } from './constants';
-import { detectBlockedTextCopy } from './detection';
+import { detectUndisclosedAdvertisingLabels } from './detection';
 
-const K05Rule: RuleDefinition = {
+const K13Rule: RuleDefinition = {
   id: RULE_ID,
   pageClassifier: defaultPageClassifier,
   relevantOn: [],
   skipIfNotRelevant: false,
-  relevantContexts: ['product', 'generic', 'account_settings'],
+  relevantContexts: ['product', 'generic'],
   detect(context: AnalysisContext): RuleResult {
-    return detectBlockedTextCopy(context);
+    return detectUndisclosedAdvertisingLabels(context);
   }
 };
 
-export default K05Rule;
+export default K13Rule;
