@@ -5,11 +5,16 @@ import {
   DATA_ATTRIBUTE_KEYWORDS,
   DISCLOSURE_TERMS,
   EXACT_AD_ATTRIBUTES,
-  ID_CLASS_PATTERNS,
+  ID_CLASS_COMPOUND_PATTERNS,
+  ID_CLASS_EXACT_TOKENS,
   KNOWN_SCRIPT_ID_PREFIXES,
   MAX_CANDIDATES,
+  MAX_DISCLOSURE_CONTAINER_HOPS,
   MAX_DESCENDANT_TEXT_NODES,
   MAX_EVIDENCE_TEXT_LENGTH,
+  MAX_NEARBY_DISCLOSURE_AREA_RATIO,
+  MAX_NEARBY_DISCLOSURE_DISTANCE_PX,
+  MAX_NEARBY_DISCLOSURE_HEIGHT_PX,
   MAX_VISUAL_TARGET_HEIGHT_RATIO,
   MAX_VISUAL_TARGET_WIDTH_RATIO,
   MIN_VISUAL_TARGET_AREA_PX,
@@ -73,15 +78,34 @@ function getNetworkFromValue(value: string): string | null {
   return null;
 }
 
+function getIdentifierTokens(value: string): string[] {
+  return normalizeValue(value)
+    .split(/[^a-z0-9]+/i)
+    .filter((token) => token.length > 0);
+}
+
 function matchesIdOrClassPattern(value: string): boolean {
   const normalized = normalizeValue(value);
-  return normalized.length > 0 && ID_CLASS_PATTERNS.some((pattern) => normalized.includes(pattern));
+
+  if (normalized.length === 0) {
+    return false;
+  }
+
+  const tokens = getIdentifierTokens(normalized);
+  const tokenText = tokens.join(' ');
+
+  return (
+    tokens.some((token) => ID_CLASS_EXACT_TOKENS.includes(token as (typeof ID_CLASS_EXACT_TOKENS)[number])) ||
+    ID_CLASS_COMPOUND_PATTERNS.some((pattern) => tokenText.includes(pattern)) ||
+    AD_NETWORKS.some((network) => normalized.includes(network.name) || normalized.includes(network.match))
+  );
 }
 
 function hasAdLikeDataAttribute(element: Element): boolean {
   return Array.from(element.attributes).some((attribute) => {
     const name = attribute.name.toLowerCase();
     const key = name.startsWith('data-') ? name.slice(5) : '';
+    const value = normalizeValue(attribute.value);
 
     if (!name.startsWith('data-')) {
       return false;
@@ -92,8 +116,10 @@ function hasAdLikeDataAttribute(element: Element): boolean {
     }
 
     return (
-      /(?:^|[-_])(ad|ads?|sponsor(?:ed)?|promo|affiliate)(?:[-_]|$)/i.test(key) ||
-      DATA_ATTRIBUTE_KEYWORDS.some((keyword) => keyword !== 'ad' && key.includes(keyword))
+      matchesIdOrClassPattern(key) ||
+      DATA_ATTRIBUTE_KEYWORDS.some((keyword) => key.includes(keyword)) ||
+      getNetworkFromValue(value) !== null ||
+      matchesIdOrClassPattern(value)
     );
   });
 }
@@ -118,6 +144,12 @@ function hasKnownScriptId(element: HTMLElement): boolean {
 function isInherentAdRenderElement(element: HTMLElement): boolean {
   const tag = element.tagName.toLowerCase();
   return tag === 'iframe' || tag === 'ins' || tag === 'object' || tag === 'embed';
+}
+
+function hasStrongAdDescendant(element: HTMLElement): boolean {
+  return Array.from(element.querySelectorAll<HTMLElement>(VISUAL_DESCENDANT_SELECTOR)).some(
+    (descendant) => descendant !== element && hasRenderableStyle(descendant)
+  );
 }
 
 function hasDirectAdSignal(element: HTMLElement): boolean {
@@ -189,7 +221,7 @@ function getCandidateMatch(element: Element): { container: HTMLElement; matchTyp
     };
   }
 
-  if (matchesIdOrClassPattern(id) || matchesIdOrClassPattern(className)) {
+  if ((matchesIdOrClassPattern(id) || matchesIdOrClassPattern(className)) && (isInherentAdRenderElement(element) || hasStrongAdDescendant(element))) {
     return {
       container: element,
       matchType: 'attribute',
@@ -272,22 +304,6 @@ function chooseBestDescendantVisualTarget(container: HTMLElement): HTMLElement |
     })[0];
 }
 
-function chooseVisibleAncestorVisualTarget(container: HTMLElement): HTMLElement | null {
-  let current = container.parentElement;
-  let hops = 0;
-
-  while (current !== null && current !== document.body && hops < 4) {
-    if (isReasonableVisualTarget(current)) {
-      return current;
-    }
-
-    current = current.parentElement;
-    hops += 1;
-  }
-
-  return null;
-}
-
 function resolveVisualTargetElement(container: HTMLElement): HTMLElement | null {
   if (isReasonableVisualTarget(container)) {
     return container;
@@ -297,12 +313,6 @@ function resolveVisualTargetElement(container: HTMLElement): HTMLElement | null 
 
   if (descendantTarget !== null && !isOversizedVisualTarget(getElementRect(descendantTarget))) {
     return descendantTarget;
-  }
-
-  const ancestorTarget = chooseVisibleAncestorVisualTarget(container);
-
-  if (ancestorTarget !== null) {
-    return ancestorTarget;
   }
 
   if (descendantTarget !== null) {
@@ -376,6 +386,93 @@ function getVisibleDisclosureText(container: HTMLElement): string | null {
   return null;
 }
 
+function getRectGap(left: DOMRect, right: DOMRect): number {
+  const horizontalGap = Math.max(0, Math.max(left.left - right.right, right.left - left.right));
+  const verticalGap = Math.max(0, Math.max(left.top - right.bottom, right.top - left.bottom));
+
+  return Math.hypot(horizontalGap, verticalGap);
+}
+
+function getHorizontalOverlapRatio(left: DOMRect, right: DOMRect): number {
+  const overlap = Math.max(0, Math.min(left.right, right.right) - Math.max(left.left, right.left));
+  return overlap / Math.max(1, Math.min(left.width, right.width));
+}
+
+function getVerticalOverlapRatio(left: DOMRect, right: DOMRect): number {
+  const overlap = Math.max(0, Math.min(left.bottom, right.bottom) - Math.max(left.top, right.top));
+  return overlap / Math.max(1, Math.min(left.height, right.height));
+}
+
+function isNearbyDisclosureElement(element: HTMLElement, containerRect: DOMRect, containerArea: number): boolean {
+  if (!hasVisibleTextStyle(element)) {
+    return false;
+  }
+
+  const rect = element.getBoundingClientRect();
+
+  if (
+    getRectArea(rect) === 0 ||
+    rect.height > MAX_NEARBY_DISCLOSURE_HEIGHT_PX ||
+    getRectArea(rect) > Math.max(MIN_VISUAL_TARGET_AREA_PX, containerArea * MAX_NEARBY_DISCLOSURE_AREA_RATIO)
+  ) {
+    return false;
+  }
+
+  const gap = getRectGap(rect, containerRect);
+
+  if (gap > MAX_NEARBY_DISCLOSURE_DISTANCE_PX) {
+    return false;
+  }
+
+  return gap <= 16 || getHorizontalOverlapRatio(rect, containerRect) >= 0.25 || getVerticalOverlapRatio(rect, containerRect) >= 0.5;
+}
+
+function getElementDisclosureText(element: HTMLElement): string | null {
+  const text = normalizeWhitespace(element.textContent ?? '');
+
+  if (text.length === 0 || !matchesDisclosureTerm(text)) {
+    return null;
+  }
+
+  return text.slice(0, MAX_EVIDENCE_TEXT_LENGTH);
+}
+
+function getNearbyDisclosureText(container: HTMLElement): string | null {
+  const containerRect = container.getBoundingClientRect();
+  const containerArea = getRectArea(containerRect);
+  const visited = new Set<HTMLElement>();
+
+  let current: HTMLElement | null = container;
+  let hops = 0;
+
+  while (current !== null && current.parentElement !== null && hops < MAX_DISCLOSURE_CONTAINER_HOPS) {
+    const parentElement: HTMLElement = current.parentElement;
+
+    for (const sibling of Array.from(parentElement.children)) {
+      if (!(sibling instanceof HTMLElement) || sibling === current || visited.has(sibling)) {
+        continue;
+      }
+
+      visited.add(sibling);
+
+      if (!isNearbyDisclosureElement(sibling, containerRect, containerArea)) {
+        continue;
+      }
+
+      const siblingDisclosure = getElementDisclosureText(sibling);
+
+      if (siblingDisclosure !== null) {
+        return siblingDisclosure;
+      }
+    }
+
+    current = parentElement;
+    hops += 1;
+  }
+
+  return null;
+}
+
 function getMachineDisclosureText(container: HTMLElement): string | null {
   const candidates: HTMLElement[] = [container, ...Array.from(container.querySelectorAll<HTMLElement>('[aria-label], [title]'))];
 
@@ -401,6 +498,12 @@ function classifyDisclosure(container: HTMLElement): { status: DisclosureStatus;
 
   if (visibleText !== null) {
     return { status: 'disclosed', text: visibleText };
+  }
+
+  const nearbyText = getNearbyDisclosureText(container);
+
+  if (nearbyText !== null) {
+    return { status: 'disclosed', text: nearbyText };
   }
 
   const machineText = getMachineDisclosureText(container);
