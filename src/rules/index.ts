@@ -6,6 +6,7 @@ import K05Rule from './K-05';
 import K06Rule from './K-06';
 import K11Rule from './K-11';
 import K13Rule from './K-13';
+import K16Rule from './K-16';
 import K51Rule from './K-51';
 import K53Rule from './K-53';
 import K55Rule from './K-55';

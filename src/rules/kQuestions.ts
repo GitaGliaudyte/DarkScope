@@ -48,6 +48,13 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product']
   },
   {
+    id: 'K-16',
+    label: 'Are the displayed discount numbers deceptive - either an implausibly large discount (>70%) or a mathematically inconsistent price?',
+    weight: 2,
+    principles: { P4: 1, P6: 0.5 },
+    relevantContexts: ['product']
+  },
+  {
     id: 'K-51',
     label: 'Are videos or other content playing automatically?',
     weight: 2,
