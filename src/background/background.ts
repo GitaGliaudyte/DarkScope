@@ -24,6 +24,8 @@ interface LinkCheckRequestMessage {
 
 interface LinkCheckStatusResponse {
   status: number;
+  finalUrl: string;
+  redirected: boolean;
 }
 
 interface LinkCheckTimeoutResponse {
@@ -32,6 +34,7 @@ interface LinkCheckTimeoutResponse {
 
 interface LinkCheckErrorResponse {
   error: string;
+  code: 'invalid_url' | 'network_error' | 'runtime_error' | 'empty_response';
 }
 
 type LinkCheckResponse = LinkCheckStatusResponse | LinkCheckTimeoutResponse | LinkCheckErrorResponse;
@@ -91,7 +94,7 @@ async function fetchUrlWithTimeout(url: string, method: 'HEAD' | 'GET'): Promise
 
     const fetchPromise = fetch(url, {
       method,
-      credentials: 'omit',
+      credentials: 'include',
       redirect: 'follow',
       signal: controller.signal
     });
@@ -102,13 +105,48 @@ async function fetchUrlWithTimeout(url: string, method: 'HEAD' | 'GET'): Promise
       return { status: 'timeout' };
     }
 
-    return { status: result.status };
+    return {
+      status: result.status,
+      finalUrl: result.url,
+      redirected: result.redirected
+    };
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
       return { status: 'timeout' };
     }
 
-    return { error: getErrorMessage(error) };
+    return { error: getErrorMessage(error), code: 'network_error' };
+  } finally {
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId);
+    }
+  }
+}
+
+async function probeOpaqueReachability(url: string): Promise<boolean> {
+  const controller = new AbortController();
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    const timeoutPromise = new Promise<'timeout'>((resolve) => {
+      timeoutId = setTimeout(() => {
+        controller.abort();
+        resolve('timeout');
+      }, LINK_CHECK_TIMEOUT_MS);
+    });
+
+    const fetchPromise = fetch(url, {
+      method: 'GET',
+      mode: 'no-cors',
+      credentials: 'omit',
+      redirect: 'follow',
+      signal: controller.signal
+    });
+
+    const result = await Promise.race([fetchPromise, timeoutPromise]);
+    return result !== 'timeout';
+  } catch {
+    return false;
   } finally {
     if (timeoutId !== undefined) {
       clearTimeout(timeoutId);
@@ -133,13 +171,13 @@ async function handleLinkCheckRequest(message: LinkCheckRequestMessage): Promise
   const targetUrl = message.payload?.url;
 
   if (typeof targetUrl !== 'string' || targetUrl.trim().length === 0) {
-    return { error: 'invalid_url' };
+    return { error: 'invalid_url', code: 'invalid_url' };
   }
 
   try {
     new URL(targetUrl);
   } catch {
-    return { error: 'invalid_url' };
+    return { error: 'invalid_url', code: 'invalid_url' };
   }
 
   const headResponse = await fetchUrlWithTimeout(targetUrl, 'HEAD');
@@ -148,12 +186,38 @@ async function handleLinkCheckRequest(message: LinkCheckRequestMessage): Promise
     return headResponse;
   }
 
-  if ('status' in headResponse && (headResponse.status === 401 || headResponse.status === 403)) {
+  if ('status' in headResponse && typeof headResponse.status === 'number' && (headResponse.status === 401 || headResponse.status === 403)) {
     return headResponse;
   }
 
   if (shouldRetryWithGet(headResponse)) {
-    return fetchUrlWithTimeout(targetUrl, 'GET');
+    const getResponse = await fetchUrlWithTimeout(targetUrl, 'GET');
+
+    if ('error' in getResponse && getResponse.code === 'network_error') {
+      const reachable = await probeOpaqueReachability(targetUrl);
+
+      if (reachable) {
+        return {
+          status: 204,
+          finalUrl: targetUrl,
+          redirected: false
+        };
+      }
+    }
+
+    if ('status' in getResponse && typeof getResponse.status === 'number' && getResponse.status >= 400) {
+      const reachable = await probeOpaqueReachability(targetUrl);
+
+      if (reachable) {
+        return {
+          status: 204,
+          finalUrl: getResponse.finalUrl,
+          redirected: getResponse.redirected
+        };
+      }
+    }
+
+    return getResponse;
   }
 
   return headResponse;

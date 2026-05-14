@@ -9,8 +9,8 @@ const K04Rule: RuleDefinition = {
   relevantOn: [],
   skipIfNotRelevant: false,
   relevantContexts: ['product', 'registration', 'account_settings', 'checkout', 'cart'],
-  detect(context: AnalysisContext): RuleResult {
-    return detectBrokenLinks(context) as unknown as RuleResult;
+  detect(context: AnalysisContext): Promise<RuleResult> {
+    return detectBrokenLinks(context);
   }
 };
 

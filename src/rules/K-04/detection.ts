@@ -5,7 +5,7 @@ import { buildVisualTarget, createRuleResult } from '../../rules-utilities/resul
 import {
   IMPORTANT_KEYWORDS,
   LOW_SIGNAL_CONTAINER_SELECTOR,
-  MAX_URLS_TO_CHECK,
+  MAX_SAME_ORIGIN_URLS_TO_CHECK,
   RULE_ID,
   SUPPLEMENTAL_ZONE_SELECTOR
 } from './constants';
@@ -130,8 +130,45 @@ function buildLinkGroups(context: AnalysisContext): LinkGroup[] {
   return Array.from(groups.values());
 }
 
+function getLinkGroupPriority(group: LinkGroup): number {
+  const representativeAnchor = chooseRepresentativeAnchor(group);
+
+  if (group.keywordMatch && representativeAnchor.zone === 'primary') {
+    return 0;
+  }
+
+  if (group.sameOrigin && representativeAnchor.zone === 'primary') {
+    return 1;
+  }
+
+  if (group.keywordMatch) {
+    return 2;
+  }
+
+  if (group.sameOrigin) {
+    return 3;
+  }
+
+  return 4;
+}
+
 function selectLinksToCheck(context: AnalysisContext): LinkGroup[] {
-  const groups = buildLinkGroups(context);
+  const groups = [...buildLinkGroups(context)].sort((left, right) => {
+    const priorityDifference = getLinkGroupPriority(left) - getLinkGroupPriority(right);
+
+    if (priorityDifference !== 0) {
+      return priorityDifference;
+    }
+
+    const leftAnchor = chooseRepresentativeAnchor(left);
+    const rightAnchor = chooseRepresentativeAnchor(right);
+
+    if (leftAnchor.text.length !== rightAnchor.text.length) {
+      return rightAnchor.text.length - leftAnchor.text.length;
+    }
+
+    return 0;
+  });
   const selected: LinkGroup[] = [];
   const selectedUrls = new Set<string>();
 
@@ -142,11 +179,9 @@ function selectLinksToCheck(context: AnalysisContext): LinkGroup[] {
 
     selected.push(group);
     selectedUrls.add(group.url);
-
-    if (selected.length >= MAX_URLS_TO_CHECK) {
-      return selected;
-    }
   }
+
+  let sameOriginCount = 0;
 
   for (const group of groups) {
     if (!group.sameOrigin || selectedUrls.has(group.url)) {
@@ -155,8 +190,9 @@ function selectLinksToCheck(context: AnalysisContext): LinkGroup[] {
 
     selected.push(group);
     selectedUrls.add(group.url);
+    sameOriginCount += 1;
 
-    if (selected.length >= MAX_URLS_TO_CHECK) {
+    if (sameOriginCount >= MAX_SAME_ORIGIN_URLS_TO_CHECK) {
       break;
     }
   }
@@ -191,18 +227,33 @@ function requestLinkCheck(url: string): Promise<LinkCheckResponse> {
 
     chrome.runtime.sendMessage(message, (response: LinkCheckResponse | undefined) => {
       if (chrome.runtime.lastError !== undefined) {
-        resolve({ error: chrome.runtime.lastError.message ?? 'runtime_error' });
+        resolve({
+          error: chrome.runtime.lastError.message ?? 'runtime_error',
+          code: 'runtime_error'
+        });
         return;
       }
 
       if (response === undefined) {
-        resolve({ error: 'empty_response' });
+        resolve({ error: 'empty_response', code: 'empty_response' });
         return;
       }
 
       resolve(response);
     });
   });
+}
+
+function isBrokenErrorResponse(response: LinkCheckResponse): boolean {
+  return 'error' in response && (response.code === 'invalid_url' || response.code === 'network_error');
+}
+
+function isWorkingResponse(response: LinkCheckResponse): boolean {
+  if ('error' in response || response.status === 'timeout') {
+    return false;
+  }
+
+  return (response.status >= 200 && response.status < 400) || response.status === 401 || response.status === 403;
 }
 
 export async function detectBrokenLinks(context: AnalysisContext): Promise<RuleResult> {
@@ -234,21 +285,46 @@ export async function detectBrokenLinks(context: AnalysisContext): Promise<RuleR
     let strongestImpact: RuleResult['impact'] = 'low';
 
     for (const { group, response } of checkResults) {
-      if ('error' in response || response.status === 'timeout') {
+      if ('error' in response) {
+        if (!isBrokenErrorResponse(response)) {
+          continue;
+        }
+
+        const representativeAnchor = chooseRepresentativeAnchor(group);
+        const contextualImpact =
+          representativeAnchor.zone === 'supplemental' ? downgradeImpact('high') : 'high';
+
+        brokenGroupCount += 1;
+
+        if (impactRank(contextualImpact) > impactRank(strongestImpact)) {
+          strongestImpact = contextualImpact;
+        }
+
+        evidence.push({
+          selector: representativeAnchor.selector,
+          text: representativeAnchor.text.length > 0 ? representativeAnchor.text : representativeAnchor.path,
+          reason: `Request failed: ${response.error}`,
+          boundingBox: representativeAnchor.element.getBoundingClientRect(),
+          zone: representativeAnchor.zone,
+          contextualImpact
+        } as RuleResult['evidence'][number]);
+
+        for (const anchor of group.anchors) {
+          selectors.push(anchor.selector);
+        }
+
         continue;
       }
 
-      const status = response.status;
-
-      if ((status >= 200 && status < 400) || status === 401 || status === 403) {
+      if (response.status === 'timeout' || isWorkingResponse(response)) {
         continue;
       }
 
       let baseImpact: RuleResult['impact'] | null = null;
 
-      if (status >= 400 && status < 500) {
+      if (response.status >= 400 && response.status < 500) {
         baseImpact = 'high';
-      } else if (status >= 500 && status < 600) {
+      } else if (response.status >= 500 && response.status < 600) {
         baseImpact = 'medium';
       }
 
@@ -268,7 +344,10 @@ export async function detectBrokenLinks(context: AnalysisContext): Promise<RuleR
       evidence.push({
         selector: representativeAnchor.selector,
         text: representativeAnchor.text.length > 0 ? representativeAnchor.text : representativeAnchor.path,
-        reason: `Returns HTTP ${status}`,
+        reason:
+          response.redirected && response.finalUrl !== group.url
+            ? `Redirects to ${response.finalUrl} and returns HTTP ${response.status}`
+            : `Returns HTTP ${response.status}`,
         boundingBox: representativeAnchor.element.getBoundingClientRect(),
         zone: representativeAnchor.zone,
         contextualImpact

@@ -122,6 +122,49 @@ const SUPPLEMENTAL_TEXT_PATTERNS: Record<PageType, string[]> = {
   generic: []
 };
 
+const PRODUCT_STRUCTURED_DATA_PATTERNS = [/"@type"\s*:\s*"product"/i, /schema\.org\/product/i];
+
+const PRODUCT_PRIMARY_CTA_PATTERNS = [
+  'add to cart',
+  'add to bag',
+  'buy now',
+  'shop now',
+  'pre-order',
+  'preorder',
+  'choose options',
+  'select options'
+] as const;
+
+const PRODUCT_SECONDARY_SIGNAL_PATTERNS = [
+  'quantity',
+  'qty',
+  'size',
+  'color',
+  'colour',
+  'variant',
+  'sku',
+  'model number',
+  'item number',
+  'product details',
+  'product description',
+  'specifications',
+  'customer reviews',
+  'write a review',
+  'wishlist',
+  'in stock',
+  'out of stock',
+  'sold out'
+] as const;
+
+const PRODUCT_PRICE_SELECTOR_CANDIDATES = [
+  '[itemprop="price"]',
+  '[data-price]',
+  '[class*="price"]',
+  '[id*="price"]',
+  'meta[property="product:price:amount"]',
+  'meta[property="og:price:amount"]'
+] as const;
+
 const SUPPLEMENTAL_EXCLUDE_SELECTORS = [
   'aside',
   'footer',
@@ -210,6 +253,16 @@ function scoreLayer1(url: string): LayerResult {
     }
   }
 
+  for (const script of Array.from(document.querySelectorAll<HTMLScriptElement>('script[type="application/ld+json"]'))) {
+    const content = normalizeText(script.textContent);
+
+    if (PRODUCT_STRUCTURED_DATA_PATTERNS.some((pattern) => pattern.test(content))) {
+      scores.product += 4;
+      signals.product.push('structured_data:product');
+      break;
+    }
+  }
+
   return { scores, signals };
 }
 
@@ -290,6 +343,77 @@ function scoreLayer3(): LayerResult {
     scores[pageType] = layerContribution;
   }
 
+  return { scores, signals };
+}
+
+function countMatches(haystack: string, patterns: readonly string[]): number {
+  let matches = 0;
+
+  for (const pattern of patterns) {
+    if (haystack.includes(pattern)) {
+      matches += 1;
+    }
+  }
+
+  return matches;
+}
+
+function hasAsciiPriceLikeContent(text: string): boolean {
+  return /(?:[$\u20AC\u00A3]\s?\d)|(?:\d[\d,.]*\s?(?:usd|eur|gbp))/i.test(text);
+}
+
+function scoreProductSpecificSignals(): LayerResult {
+  const scores = createEmptyScores();
+  const signals = createEmptySignals();
+  let productScore = 0;
+
+  const buttonText = Array.from(
+    document.querySelectorAll<HTMLButtonElement | HTMLInputElement>('button, input[type="submit"], input[type="button"]')
+  )
+    .map((element) => normalizeText(element instanceof HTMLInputElement ? element.value : element.textContent))
+    .filter((value) => value.length > 0)
+    .join(' ');
+
+  const primaryCtaMatches = countMatches(buttonText, PRODUCT_PRIMARY_CTA_PATTERNS);
+
+  if (primaryCtaMatches > 0) {
+    productScore += Math.min(primaryCtaMatches * 2, 4);
+    signals.product.push('product_cta');
+  }
+
+  const inputAndLabelText = Array.from(document.querySelectorAll<HTMLElement>('label, legend, option, select'))
+    .map((element) => normalizeText(element.textContent))
+    .filter((value) => value.length > 0)
+    .join(' ');
+  const secondaryText = `${buttonText} ${inputAndLabelText} ${normalizeText(document.body?.innerText).slice(0, 4000)}`;
+  const secondaryMatches = countMatches(secondaryText, PRODUCT_SECONDARY_SIGNAL_PATTERNS);
+
+  if (secondaryMatches > 0) {
+    productScore += Math.min(secondaryMatches, 3);
+    signals.product.push('product_supporting_text');
+  }
+
+  const priceSelectorMatch = PRODUCT_PRICE_SELECTOR_CANDIDATES.some((selector) => {
+    try {
+      const element = document.querySelector(selector);
+
+      if (element === null) {
+        return false;
+      }
+
+      const content = normalizeText(element.getAttribute('content') ?? element.textContent);
+      return content.length > 0 && hasAsciiPriceLikeContent(content);
+    } catch {
+      return false;
+    }
+  });
+
+  if (priceSelectorMatch || hasAsciiPriceLikeContent(secondaryText)) {
+    productScore += 2;
+    signals.product.push('product_price');
+  }
+
+  scores.product = Math.min(productScore, 6);
   return { scores, signals };
 }
 
@@ -375,12 +499,19 @@ function collectInputSummaries(): string[] {
 }
 
 function buildLlmContext(): string {
+  const structuredDataSummary = Array.from(document.querySelectorAll<HTMLScriptElement>('script[type="application/ld+json"]'))
+    .map((element) => normalizeText(element.textContent))
+    .find((value) => PRODUCT_STRUCTURED_DATA_PATTERNS.some((pattern) => pattern.test(value)));
+  const bodyPreview = normalizeText(document.body?.innerText).slice(0, 1000);
+
   return [
     `url: ${window.location.href}`,
     `title: ${document.title.trim()}`,
     `h1: ${normalizeText(document.querySelector('h1')?.textContent)}`,
     `buttons: ${collectButtonTexts().join(' | ')}`,
-    `inputs: ${collectInputSummaries().join(' | ')}`
+    `inputs: ${collectInputSummaries().join(' | ')}`,
+    `schema: ${structuredDataSummary !== undefined ? 'product' : 'none'}`,
+    `text_preview: ${bodyPreview}`
   ].join('\n');
 }
 
@@ -474,7 +605,7 @@ async function classifyWithLLM(): Promise<PageContext> {
     buildLlmContext(),
     '',
     'Respond with only one lowercase token from this list and nothing else:',
-    'product, cart, checkout, registration, account_settings'
+    'product, cart, checkout, registration, account_settings, generic'
   ].join('\n');
 
   try {
@@ -515,7 +646,22 @@ export async function classifyPageContext(): Promise<PageContext> {
   const layer1 = scoreLayer1(url);
   const layer2 = scoreLayer2();
   const layer3 = scoreLayer3();
-  const ranked = combineScores(layer1, layer2, layer3);
+  const productSignals = scoreProductSpecificSignals();
+  const combinedLayer3: LayerResult = {
+    scores: {
+      ...layer3.scores,
+      product: layer3.scores.product + productSignals.scores.product
+    },
+    signals: {
+      ...layer3.signals,
+      product: [...layer3.signals.product, ...productSignals.signals.product]
+    }
+  };
+  const ranked = combineScores(
+    layer1,
+    layer2,
+    combinedLayer3
+  );
   const winner = ranked[0];
   const runnerUp = ranked[1];
   const isConflicted =
@@ -527,6 +673,7 @@ export async function classifyPageContext(): Promise<PageContext> {
   console.log('layer 1:', layer1);
   console.log('layer 2:', layer2);
   console.log('layer 3:', layer3);
+  console.log('product signals:', productSignals);
   console.log('winned:', winner);
   console.log('runner up:', runnerUp);
 

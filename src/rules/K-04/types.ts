@@ -7,7 +7,18 @@ export interface LinkCheckRequest {
   };
 }
 
-export type LinkCheckResponse = { status: number } | { status: 'timeout' } | { error: string };
+export interface LinkCheckSuccessResponse {
+  status: number;
+  finalUrl: string;
+  redirected: boolean;
+}
+
+export interface LinkCheckErrorResponse {
+  error: string;
+  code: 'invalid_url' | 'network_error' | 'runtime_error' | 'empty_response';
+}
+
+export type LinkCheckResponse = LinkCheckSuccessResponse | { status: 'timeout' } | LinkCheckErrorResponse;
 
 export interface LinkCandidate {
   selector: string;
