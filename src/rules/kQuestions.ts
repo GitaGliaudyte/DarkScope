@@ -90,6 +90,13 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product', 'cart', 'checkout']
   },
   {
+    id: 'K-60',
+    label: 'Does the product or service indicate that it is a limited-time offer and will end soon (e.g. "Limited-time offer")?',
+    weight: 2,
+    principles: { P2: 0.5, P3: 0.5, P6: 0.5 },
+    relevantContexts: ['product', 'cart', 'checkout']
+  },
+  {
     id: 'K-61',
     label: 'Are there words next to the refusal discouraging the user from completing the action (e.g. "don\'t miss it," "you\'ll regret it," "shame," "no, I want to overpay")?',
     weight: 2,
