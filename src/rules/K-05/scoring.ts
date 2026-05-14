@@ -1,6 +1,6 @@
 import { Confidence, RuleResult } from '../../engine/types';
 import { HIGH_IMPACT_SELECTOR, MEDIUM_IMPACT_SELECTOR } from './constants';
-import { CandidateSignals, FlaggedElement } from './types';
+import { RuleFinding, RuleSignals } from './types';
 
 type Impact = RuleResult['impact'];
 
@@ -109,7 +109,7 @@ function getContentDescription(element: HTMLElement): string {
   return 'content section';
 }
 
-export function buildReason(element: HTMLElement, signals: CandidateSignals): string {
+export function buildReason(element: HTMLElement, signals: RuleSignals): string {
   const description = getContentDescription(element);
   const reasonParts: string[] = [];
 
@@ -146,7 +146,7 @@ export function getStrongerImpact(left: Impact, right: Impact): Impact {
   return rank[left] >= rank[right] ? left : right;
 }
 
-export function getContextualImpact(flagged: FlaggedElement): Impact {
-  const baseImpact = getBaseImpact(flagged.element);
-  return flagged.zone === 'supplemental' ? downgradeImpact(baseImpact) : baseImpact;
+export function getContextualImpact(finding: RuleFinding): Impact {
+  const baseImpact = getBaseImpact(finding.element);
+  return finding.zone === 'supplemental' ? downgradeImpact(baseImpact) : baseImpact;
 }

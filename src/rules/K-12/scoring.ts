@@ -1,39 +1,33 @@
 import { Confidence, RuleResult } from '../../engine/types';
-
-export interface SuspiciousLinkSignals {
-  hasCardLayout: boolean;
-  hasContentClassPattern: boolean;
-  isButtonLike: boolean;
-  hasCtaPattern: boolean;
-}
+import { RuleSignals } from './types';
 
 /**
  * Computes the capped raw K-12 score from the suspicious link signals found on the page.
  */
-export function computeScore(flaggedLinks: SuspiciousLinkSignals[]): number {
+export function computeScore(findings: RuleSignals[]): number {
   let score = 0;
 
-  for (const flaggedLink of flaggedLinks) {
+  for (const finding of findings) {
     score += 3;
 
-    if (flaggedLink.hasCardLayout) {
+    if (finding.hasCardLayout) {
       score += 2;
     }
 
-    if (flaggedLink.hasContentClassPattern) {
+    if (finding.hasContentClassPattern) {
       score += 1;
     }
 
-    if (flaggedLink.isButtonLike) {
+    if (finding.isButtonLike) {
       score += 3;
     }
 
-    if (flaggedLink.hasCtaPattern) {
+    if (finding.hasCtaPattern) {
       score += 1;
     }
   }
 
-  if (flaggedLinks.length >= 3) {
+  if (findings.length >= 3) {
     score += 2;
   }
 

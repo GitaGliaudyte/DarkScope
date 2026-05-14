@@ -1,18 +1,18 @@
-export type ElementZone = 'primary' | 'supplemental';
+export type RuleZone = 'primary' | 'supplemental';
 
-export interface ProbeCandidate {
+export interface RuleCandidate {
   element: HTMLElement;
   selector: string;
   label: string;
   priority: number;
   index: number;
-  zone: ElementZone;
+  zone: RuleZone;
   passwordField: boolean;
   paymentField: boolean;
   emailOrUsernameField: boolean;
 }
 
-export interface CandidateSignals {
+export interface RuleSignals {
   pasteBlocked: boolean;
   copyBlocked: boolean;
   inlineOnPasteBlocked: boolean;
@@ -21,7 +21,7 @@ export interface CandidateSignals {
   dragFillBlocked: boolean;
 }
 
-export interface FlaggedElement extends ProbeCandidate {
-  signals: CandidateSignals;
+export interface RuleFinding extends RuleCandidate {
+  signals: RuleSignals;
   score: number;
 }

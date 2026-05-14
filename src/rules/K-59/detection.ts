@@ -3,14 +3,7 @@ import { AnalysisContext, NormalizedElement, RuleResult } from '../../engine/typ
 import { buildVisualTarget, clampProbability, createRuleResult } from '../../rules-utilities/resultUtils';
 import { LIVE_TEXT_SELECTOR, RULE_ID, TIME_OF_DAY_CONTEXT, TIMER_IDENTIFIER_PATTERN, TIMER_TEXT_PATTERN } from './constants';
 import { getConfidence, hasTimerAttribute, hasTimerClassOrId, includesUrgencyKeyword, scoreSignals } from './scoring';
-
-interface CountdownHit {
-  selector: string;
-  element: HTMLElement;
-  score: number;
-  text: string;
-  boundingBox: DOMRect | null;
-}
+import { RuleFinding } from './types';
 
 function isCountdownCandidate(element: NormalizedElement): boolean {
   const joinedAttributes = Object.entries(element.attributes)
@@ -92,7 +85,7 @@ export function detectCountdownTimer(context: AnalysisContext): RuleResult {
   const evidence: RuleResult['evidence'] = [];
   const selectors = new Set<string>();
   let highestScore = 0;
-  const hits: CountdownHit[] = [];
+  const hits: RuleFinding[] = [];
 
   for (const candidate of candidates) {
     const liveElement = document.querySelector<HTMLElement>(candidate.selector);

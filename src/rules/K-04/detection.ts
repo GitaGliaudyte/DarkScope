@@ -10,35 +10,7 @@ import {
   SUPPLEMENTAL_ZONE_SELECTOR
 } from './constants';
 import { downgradeImpact, getConfidence, getProbability, impactRank } from './scoring';
-
-type ElementZone = 'primary' | 'supplemental';
-
-interface LinkCheckRequest {
-  type: 'link_check_request';
-  payload: {
-    url: string;
-  };
-}
-
-type LinkCheckResponse = { status: number } | { status: 'timeout' } | { error: string };
-
-interface LinkCandidate {
-  selector: string;
-  element: HTMLAnchorElement;
-  url: string;
-  text: string;
-  path: string;
-  keywordMatch: boolean;
-  sameOrigin: boolean;
-  zone: ElementZone;
-}
-
-interface LinkGroup {
-  url: string;
-  sameOrigin: boolean;
-  keywordMatch: boolean;
-  anchors: LinkCandidate[];
-}
+import { ElementZone, LinkCandidate, LinkCheckRequest, LinkCheckResponse, LinkGroup } from './types';
 
 function truncateText(value: string, maxLength: number): string {
   return normalizeWhitespace(value).slice(0, maxLength);

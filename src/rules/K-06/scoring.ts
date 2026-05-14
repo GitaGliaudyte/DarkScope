@@ -1,6 +1,6 @@
 import { Confidence, RuleResult } from '../../engine/types';
 import { getFieldDescription } from './signals';
-import { FlaggedElement, ProbeCandidate } from './types';
+import { RuleCandidate, RuleFinding } from './types';
 
 export function downgradeImpact(impact: RuleResult['impact']): RuleResult['impact'] {
   if (impact === 'high') {
@@ -42,11 +42,11 @@ export function getProbability(score: number): number {
   return 0;
 }
 
-export function getBaseImpact(candidate: ProbeCandidate): RuleResult['impact'] {
+export function getBaseImpact(candidate: RuleCandidate): RuleResult['impact'] {
   return candidate.passwordField || candidate.paymentField ? 'high' : 'medium';
 }
 
-export function buildReason(candidate: FlaggedElement): string {
+export function buildReason(candidate: RuleFinding): string {
   const reasonParts: string[] = [];
 
   if (candidate.signals.pasteBlocked && candidate.signals.copyBlocked) {

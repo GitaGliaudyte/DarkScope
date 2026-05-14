@@ -1,5 +1,5 @@
 import { INLINE_FALSE_HANDLER_PATTERN, INLINE_USER_SELECT_NONE_PATTERN } from './constants';
-import { CandidateSignals, FlaggedElement, ProbeCandidate } from './types';
+import { RuleCandidate, RuleFinding, RuleSignals } from './types';
 
 function isCopyEventBlocked(element: HTMLElement): boolean {
   const event = new ClipboardEvent('copy', {
@@ -29,7 +29,7 @@ function hasInlineSelectionStyle(element: HTMLElement): boolean {
   return INLINE_USER_SELECT_NONE_PATTERN.test((element.getAttribute('style') ?? '').toLowerCase());
 }
 
-function getCandidateSignals(element: HTMLElement): CandidateSignals {
+function getCandidateSignals(element: HTMLElement): RuleSignals {
   return {
     copyEventBlocked: isCopyEventBlocked(element),
     cssSelectionBlocked: isCssSelectionBlocked(element),
@@ -39,7 +39,7 @@ function getCandidateSignals(element: HTMLElement): CandidateSignals {
   };
 }
 
-function getSignalScore(signals: CandidateSignals): number {
+function getSignalScore(signals: RuleSignals): number {
   let score = 0;
 
   if (signals.copyEventBlocked) {
@@ -65,7 +65,7 @@ function getSignalScore(signals: CandidateSignals): number {
   return score;
 }
 
-export function probeCandidate(candidate: ProbeCandidate): FlaggedElement | null {
+export function probeCandidate(candidate: RuleCandidate): RuleFinding | null {
   const signals = getCandidateSignals(candidate.element);
   const score = getSignalScore(signals);
 

@@ -1,69 +1,7 @@
 import { defaultPageClassifier } from '../../engine/pageClassifier';
-import { createErrorResult } from '../../engine/ruleEngine';
 import { AnalysisContext, RuleDefinition, RuleResult } from '../../engine/types';
-import { buildVisualTarget, createRuleResult } from '../../rules-utilities/resultUtils';
 import { RULE_ID } from './constants';
-import { probeCandidate } from './probing';
-import { buildReason, getConfidence, getContextualImpact, getProbability, getStrongerImpact } from './scoring';
-import { collectCandidates } from './signals';
-import { FlaggedElement } from './types';
-
-function detectBlockedTextCopy(_context: AnalysisContext): RuleResult {
-  try {
-    const candidates = collectCandidates();
-    const flaggedElements = candidates
-      .map(probeCandidate)
-      .filter((candidate): candidate is FlaggedElement => candidate !== null);
-
-    if (flaggedElements.length === 0) {
-      return createRuleResult({
-        ruleId: RULE_ID,
-        detected: false,
-        probability: 0,
-        confidence: 'low',
-        impact: 'low',
-        visualTarget: buildVisualTarget([]),
-        occurrenceCount: 0
-      });
-    }
-
-    let totalScore = 0;
-    let strongestImpact: RuleResult['impact'] = 'low';
-    const selectors: string[] = [];
-    const evidence: RuleResult['evidence'] = [];
-
-    for (const flagged of flaggedElements) {
-      const contextualImpact = getContextualImpact(flagged);
-
-      totalScore += flagged.score;
-      strongestImpact = getStrongerImpact(strongestImpact, contextualImpact);
-      selectors.push(flagged.selector);
-      evidence.push({
-        selector: flagged.selector,
-        text: flagged.text,
-        reason: buildReason(flagged.element, flagged.signals),
-        boundingBox: flagged.element.getBoundingClientRect(),
-        zone: flagged.zone,
-        contextualImpact
-      } as RuleResult['evidence'][number]);
-    }
-
-    const cappedScore = Math.min(totalScore, 20);
-
-    return createRuleResult({
-      ruleId: RULE_ID,
-      detected: cappedScore > 0,
-      probability: getProbability(cappedScore),
-      confidence: getConfidence(cappedScore),
-      impact: strongestImpact,
-      evidence,
-      visualTarget: buildVisualTarget(selectors),
-      occurrenceCount: flaggedElements.length
-    });
-  } catch (error) {
-    return createErrorResult(RULE_ID, error);
-  }
-}
+import { detectBlockedTextCopy } from './detection';
 
 const K05Rule: RuleDefinition = {
   id: RULE_ID,

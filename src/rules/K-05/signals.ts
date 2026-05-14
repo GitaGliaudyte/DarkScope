@@ -8,9 +8,9 @@ import {
   TIER_1_SELECTOR,
   TIER_2_SELECTOR
 } from './constants';
-import { ElementZone, ProbeCandidate } from './types';
+import { RuleCandidate, RuleZone } from './types';
 
-function detectZone(element: HTMLElement): ElementZone {
+function detectZone(element: HTMLElement): RuleZone {
   return element.closest(SUPPLEMENTAL_ZONE_SELECTOR) === null ? 'primary' : 'supplemental';
 }
 
@@ -69,14 +69,14 @@ function getDirectBlockingElements(): HTMLElement[] {
     .sort(compareCandidateElements);
 }
 
-function isSelectionOverlapping(element: HTMLElement, selected: ProbeCandidate[]): boolean {
+function isSelectionOverlapping(element: HTMLElement, selected: RuleCandidate[]): boolean {
   return selected.some(
     (candidate) =>
       candidate.element === element || candidate.element.contains(element) || element.contains(candidate.element)
   );
 }
 
-function createCandidate(element: HTMLElement): ProbeCandidate {
+function createCandidate(element: HTMLElement): RuleCandidate {
   return {
     element,
     selector: generateUniqueSelector(element),
@@ -85,7 +85,7 @@ function createCandidate(element: HTMLElement): ProbeCandidate {
   };
 }
 
-function selectNonOverlappingCandidates(elements: HTMLElement[], selected: ProbeCandidate[]): ProbeCandidate[] {
+function selectNonOverlappingCandidates(elements: HTMLElement[], selected: RuleCandidate[]): RuleCandidate[] {
   const nextSelected = [...selected];
 
   for (const element of elements) {
@@ -99,7 +99,7 @@ function selectNonOverlappingCandidates(elements: HTMLElement[], selected: Probe
   return nextSelected;
 }
 
-export function collectCandidates(): ProbeCandidate[] {
+export function collectCandidates(): RuleCandidate[] {
   const directBlockingCandidates = selectNonOverlappingCandidates(getDirectBlockingElements(), []);
 
   if (directBlockingCandidates.length >= MAX_CANDIDATES) {
