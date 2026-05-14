@@ -8,7 +8,7 @@ const K13Rule: RuleDefinition = {
   pageClassifier: defaultPageClassifier,
   relevantOn: [],
   skipIfNotRelevant: false,
-  relevantContexts: ['product', 'generic'],
+  relevantContexts: ['product'],
   detect(context: AnalysisContext): RuleResult {
     return detectUndisclosedAdvertisingLabels(context);
   }

@@ -55,6 +55,13 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product']
   },
   {
+    id: 'K-20',
+    label: 'Does an element in the top layer occupy more than 50% of the total screen size?',
+    weight: 2,
+    principles: { P2: 1, P4: 0.5 },
+    relevantContexts: ['product', 'checkout']
+  },
+  {
     id: 'K-51',
     label: 'Are videos or other content playing automatically?',
     weight: 2,
