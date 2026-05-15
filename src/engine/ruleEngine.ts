@@ -22,8 +22,6 @@ export function createNotApplicableResult(ruleId: string): RuleResult {
 }
 
 export function createErrorResult(ruleId: string, err: unknown): RuleResult {
-  console.error(`DarkScope rule failed: ${ruleId}`, err);
-
   return {
     ruleId,
     detected: false,

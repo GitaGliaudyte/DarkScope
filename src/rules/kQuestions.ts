@@ -76,6 +76,13 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product', 'registration', 'account_settings', 'cart']
   },
   {
+    id: 'K-30',
+    label: 'Is there no filtering or sorting functionality?',
+    weight: 2,
+    principles: { P3: 1, P5: 0.5 },
+    relevantContexts: ['product']
+  },
+  {
     id: 'K-51',
     label: 'Are videos or other content playing automatically?',
     weight: 2,

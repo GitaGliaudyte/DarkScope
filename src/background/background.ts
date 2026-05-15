@@ -224,24 +224,13 @@ async function handleLinkCheckRequest(message: LinkCheckRequestMessage): Promise
 }
 
 async function handleLlmRequest(message: LlmRequestMessage): Promise<LlmSuccessResponse | LlmErrorResponse> {
-  console.log('[DarkScope][LLM] Incoming request', {
-    maxTokens: message.payload.maxTokens ?? 300,
-    promptPreview: summarizePrompt(message.payload.prompt)
-  });
-
   const apiKey = await getApiKey();
 
   if (apiKey === undefined) {
-    console.error('[DarkScope][LLM] Gemini API key missing in chrome.storage.local');
     return { error: 'no_api_key' };
   }
 
   try {
-    console.log('[DarkScope][LLM] Sending Gemini request', {
-      model: GEMINI_MODEL,
-      hasApiKey: apiKey.length > 0
-    });
-
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`, {
       method: 'POST',
       headers: {
@@ -267,21 +256,7 @@ async function handleLlmRequest(message: LlmRequestMessage): Promise<LlmSuccessR
 
     const data = (await response.json()) as GeminiGenerateContentResponse;
 
-    console.log('[DarkScope][LLM] Gemini HTTP response', {
-      ok: response.ok,
-      status: response.status,
-      statusText: response.statusText,
-      hasCandidates: Array.isArray(data.candidates),
-      candidateCount: data.candidates?.length ?? 0,
-      apiError: data.error?.message ?? null
-    });
-
     if (!response.ok) {
-      console.error('[DarkScope][LLM] Gemini request failed', {
-        status: response.status,
-        statusText: response.statusText,
-        error: data.error?.message ?? `gemini_http_${response.status}`
-      });
       return { error: data.error?.message ?? `gemini_http_${response.status}` };
     }
 
@@ -292,19 +267,11 @@ async function handleLlmRequest(message: LlmRequestMessage): Promise<LlmSuccessR
       .trim();
 
     if (typeof text !== 'string' || text.length === 0) {
-      console.error('[DarkScope][LLM] Gemini response contained no text', {
-        candidateCount: data.candidates?.length ?? 0
-      });
       return { error: 'empty_response' };
     }
 
-    console.log('[DarkScope][LLM] Gemini request succeeded', {
-      textPreview: summarizePrompt(text)
-    });
-
     return { text };
   } catch (error) {
-    console.error('[DarkScope][LLM] Gemini request threw', error);
     return {
       error: error instanceof Error ? error.message : 'unknown_error'
     };
@@ -317,15 +284,9 @@ chrome.runtime.onMessage.addListener((message: unknown, _sender, sendResponse) =
   }
 
   if (message.type === 'llm_request') {
-    console.log('[DarkScope][LLM] Message received by background worker');
-
     void (async () => {
       try {
         const response = await handleLlmRequest(message);
-        console.log('[DarkScope][LLM] Sending response back to content script', {
-          ok: 'text' in response,
-          error: 'error' in response ? response.error : null
-        });
         sendResponse(response);
       } catch (error) {
         sendResponse({ error: getErrorMessage(error) });
