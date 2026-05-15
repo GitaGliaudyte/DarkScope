@@ -69,6 +69,13 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product']
   },
   {
+    id: 'K-24',
+    label: 'Are options pre-selected by default?',
+    weight: 2,
+    principles: { P1: 1, P3: 0.5 },
+    relevantContexts: ['product', 'registration', 'account_settings', 'cart']
+  },
+  {
     id: 'K-51',
     label: 'Are videos or other content playing automatically?',
     weight: 2,
