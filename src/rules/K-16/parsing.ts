@@ -1,15 +1,18 @@
 import { normalizeWhitespace } from '../../engine/normalizedElements';
 import { CURRENCY_SYMBOLS, DISCOUNT_LABEL_PATTERNS } from './constants';
 
-const CURRENCY_TOKEN_PATTERN = /(?:usd|eur|gbp|pln|sek|nok|dkk|czk|jpy|zł|kr)/gi;
+const CURRENCY_TOKEN_PATTERN = /(?:usd|eur|gbp|pln|sek|nok|dkk|czk|jpy|zÅ‚|kr)/gi;
 const ESCAPED_CURRENCY_PATTERN = CURRENCY_SYMBOLS.map((symbol) => symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join(
   '|'
 );
+const PRICE_TOKEN_SOURCE = `(?:${ESCAPED_CURRENCY_PATTERN})\\s*-?\\d[\\d\\s.,]*|-?\\d[\\d\\s.,]*\\s*(?:${ESCAPED_CURRENCY_PATTERN})`;
 const PRICE_WITH_PREFIX_PATTERN = new RegExp(`(?:${ESCAPED_CURRENCY_PATTERN})\\s*-?\\d[\\d\\s.,]*`, 'i');
 const PRICE_WITH_SUFFIX_PATTERN = new RegExp(`-?\\d[\\d\\s.,]*\\s*(?:${ESCAPED_CURRENCY_PATTERN})`, 'i');
-const PRICE_TOKEN_PATTERN = new RegExp(
-  `(?:${ESCAPED_CURRENCY_PATTERN})\\s*-?\\d[\\d\\s.,]*|-?\\d[\\d\\s.,]*\\s*(?:${ESCAPED_CURRENCY_PATTERN})`,
-  'gi'
+const PRICE_TOKEN_PATTERN = new RegExp(PRICE_TOKEN_SOURCE, 'gi');
+const RANGE_PRICE_SPAN_PATTERN = new RegExp(`${PRICE_TOKEN_SOURCE}\\s*(?:to|[-–—])\\s*${PRICE_TOKEN_SOURCE}`, 'i');
+const RANGE_PRICE_PREFIX_PATTERN = new RegExp(
+  `\\b(?:from|starting\\s+at|starting\\s+from|starts\\s+at|starts\\s+from|as\\s+low\\s+as|up\\s+to)\\b\\s*${PRICE_TOKEN_SOURCE}`,
+  'i'
 );
 
 export interface ParsedDiscountLabel {
@@ -82,6 +85,24 @@ export function extractTextPrice(text: string): string | null {
 export function extractPriceTokens(text: string): string[] {
   const normalized = normalizeWhitespace(text);
   return normalized.match(PRICE_TOKEN_PATTERN) ?? [];
+}
+
+/**
+ * Detects "from/to" style price ranges that should not be treated as a single final price.
+ */
+export function isPriceRangeText(text: string): boolean {
+  const normalized = normalizeWhitespace(text.toLowerCase());
+  const priceTokens = extractPriceTokens(normalized);
+
+  if (priceTokens.length === 0) {
+    return false;
+  }
+
+  if (RANGE_PRICE_PREFIX_PATTERN.test(normalized)) {
+    return true;
+  }
+
+  return priceTokens.length >= 2 && RANGE_PRICE_SPAN_PATTERN.test(normalized);
 }
 
 /**
