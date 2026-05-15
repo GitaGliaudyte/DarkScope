@@ -13,6 +13,7 @@ import {
   MAX_GROUP_DESCENDANT_SCAN,
   MAX_GROUP_OPTIONS,
   MAX_GROUPS,
+  MAX_INLINE_PRICE_CONTEXT_LENGTH,
   MAX_PRICE_TEXT_LENGTH,
   MIN_GROUP_OPTIONS,
   PRICE_DISPLAY_SELECTORS,
@@ -332,6 +333,28 @@ function getExtraTokenTextLength(text: string, token: string): number {
   return normalizedText.replace(token, '').trim().length;
 }
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function hasExplicitPricePresentationHint(element: HTMLElement, attributeBlob: string): boolean {
+  return (
+    PRICE_DISPLAY_SELECTORS.some((selector) => element.matches(selector)) ||
+    FINAL_PRICE_SELECTORS.some((selector) => element.matches(selector)) ||
+    /\b(price|sale|final|now|member|regular|original|msrp|rrp)\b/.test(attributeBlob)
+  );
+}
+
+function isPromotionalThresholdPriceText(text: string, token: string): boolean {
+  const normalizedText = normalizeWhitespace(text).toLowerCase();
+  const normalizedToken = normalizeWhitespace(token).toLowerCase();
+  const escapedToken = escapeRegExp(normalizedToken);
+
+  return new RegExp(`\\b(under|below|less than|up to|starting at|starts at|as low as|from)\\b\\s*${escapedToken}`).test(
+    normalizedText
+  );
+}
+
 function collectPriceTextCandidates(cardElement: HTMLElement, token: string): HTMLElement[] {
   return [cardElement, ...Array.from(cardElement.querySelectorAll<HTMLElement>('*')).slice(0, MAX_DESCENDANT_SCAN)]
     .filter(isVisibleElement)
@@ -464,8 +487,10 @@ function extractPriceData(element: HTMLElement): PriceData | null {
     const fontSize = Number.parseFloat(displayStyle.fontSize || '0');
     const area = Math.min(displayRect.width * displayRect.height, 2500);
     const displayText = getElementText(displayElement);
-    const extraTextLength = getExtraTokenTextLength(displayText, normalizeWhitespace(token));
-    const exactTokenText = normalizeWhitespace(displayText) === normalizeWhitespace(token);
+    const normalizedToken = normalizeWhitespace(token);
+    const normalizedDisplayText = normalizeWhitespace(displayText);
+    const extraTextLength = getExtraTokenTextLength(displayText, normalizedToken);
+    const exactTokenText = normalizedDisplayText === normalizedToken;
     const hasFinalPriceHint =
       FINAL_PRICE_SELECTORS.some((selector) => displayElement.matches(selector)) || /current|sale|final|now|price/.test(attributeBlob);
     const hasOriginalPriceHint =
@@ -473,10 +498,18 @@ function extractPriceData(element: HTMLElement): PriceData | null {
       displayStyle.textDecorationLine.includes('line-through') ||
       displayStyle.textDecoration.includes('line-through') ||
       /original|old-price|list-price|regular|before|compare|strike|msrp|rrp/.test(attributeBlob);
+    const hasExplicitPriceHint = hasExplicitPricePresentationHint(displayElement, attributeBlob);
+    const isCompactInlinePrice = exactTokenText || extraTextLength <= MAX_INLINE_PRICE_CONTEXT_LENGTH;
+    const isPromotionalThresholdPrice = isPromotionalThresholdPriceText(normalizedDisplayText, normalizedToken);
+
+    if (isPromotionalThresholdPrice || (!hasExplicitPriceHint && !isCompactInlinePrice)) {
+      continue;
+    }
+
     const nestedMatchingPriceDescendants = Array.from(displayElement.querySelectorAll<HTMLElement>('*'))
       .slice(0, MAX_DESCENDANT_SCAN)
       .filter(isVisibleElement)
-      .filter((descendant) => normalizeWhitespace(getElementText(descendant)).includes(normalizeWhitespace(token))).length;
+      .filter((descendant) => normalizeWhitespace(getElementText(descendant)).includes(normalizedToken)).length;
     const score =
       area +
       fontSize * 60 +
@@ -489,7 +522,7 @@ function extractPriceData(element: HTMLElement): PriceData | null {
     candidates.push({
       element: candidate,
       displayElement,
-      token: normalizeWhitespace(token),
+      token: normalizedToken,
       score
     });
   }
