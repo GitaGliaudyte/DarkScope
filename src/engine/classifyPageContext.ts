@@ -562,32 +562,21 @@ function sendLlmRequest(prompt: string): Promise<string> {
       payload: { prompt }
     };
 
-    console.log('[DarkScope][LLM] Sending chrome.runtime message', {
-      promptPreview: previewText(prompt)
-    });
-
     chrome.runtime.sendMessage(message, (response: LlmProxyResponse | undefined) => {
       if (chrome.runtime.lastError !== undefined) {
-        console.error('[DarkScope][LLM] chrome.runtime.sendMessage failed', chrome.runtime.lastError.message);
         reject(new Error(chrome.runtime.lastError.message));
         return;
       }
 
       if (response === undefined) {
-        console.error('[DarkScope][LLM] Background worker returned undefined response');
         reject(new Error('empty_response'));
         return;
       }
 
       if ('error' in response) {
-        console.error('[DarkScope][LLM] Background worker returned error', response.error);
         reject(new Error(response.error));
         return;
       }
-
-      console.log('[DarkScope][LLM] Background worker returned text', {
-        textPreview: previewText(response.text)
-      });
       resolve(response.text);
     });
   });
@@ -610,15 +599,9 @@ async function classifyWithLLM(): Promise<PageContext> {
 
   try {
     const raw = await sendLlmRequest(prompt);
-    console.log('[DarkScope][LLM] Raw classification payload', {
-      rawPreview: previewText(raw)
-    });
     const pageType = extractPageTypeFromResponse(raw);
 
     if (pageType === null) {
-      console.error('[DarkScope][LLM] LLM response did not contain a valid page type', {
-        rawPreview: previewText(raw)
-      });
       return {
         type: 'generic',
         confidence: 'low',
@@ -632,7 +615,6 @@ async function classifyWithLLM(): Promise<PageContext> {
       signals: ['llm_classified']
     };
   } catch (error) {
-    console.error('[DarkScope][LLM] classifyWithLLM failed', error);
     return {
       type: 'generic',
       confidence: 'low',
@@ -670,13 +652,6 @@ export async function classifyPageContext(): Promise<PageContext> {
     runnerUp.total > 0 &&
     runnerUp.total >= winner.total * 0.6;
 
-  console.log('layer 1:', layer1);
-  console.log('layer 2:', layer2);
-  console.log('layer 3:', layer3);
-  console.log('product signals:', productSignals);
-  console.log('winned:', winner);
-  console.log('runner up:', runnerUp);
-
   const shouldUseLlmFallback =
     winner === undefined ||
     winner.total === 0 ||
@@ -684,7 +659,6 @@ export async function classifyPageContext(): Promise<PageContext> {
 
   if (shouldUseLlmFallback) {
     const result = await classifyWithLLM();
-    console.log('LLM result:', result);
 
     if (shouldKeepHeuristicWinner(winner, result)) {
       return toPageContextFromWinner(winner, isConflicted);
