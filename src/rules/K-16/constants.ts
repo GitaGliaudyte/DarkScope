@@ -75,11 +75,11 @@ export const FINAL_PRICE_SELECTORS = [
 export const DISCOUNT_LABEL_PATTERNS = {
   percentage: [
     /(?:^|[^\d])-(\d{1,3}(?:[.,]\d+)?)\s*%/i,
-    /\b(\d{1,3}(?:[.,]\d+)?)\s*%\s*(?:off|discount|nuolaida|rabatt)\b/i,
-    /\b(?:save|you save|taupote|sutaup(?:yk|ote))\s*(\d{1,3}(?:[.,]\d+)?)\s*%\b/i
+    /\b(\d{1,3}(?:[.,]\d+)?)\s*%\s*(?:off|discount|rabatt)\b/i,
+    /\b(?:save|you save)\s*(\d{1,3}(?:[.,]\d+)?)\s*%\b/i
   ],
   absolute: [
-    /\b(?:save|you save|taupote|sutaup(?:yk|ote))\s*((?:[€$£¥]|kr|zł)\s*-?\d[\d\s.,]*|\d[\d\s.,]*\s*(?:€|\$|£|¥|kr|zł))\b/i
+    /\b(?:save|you save)\s*((?:[€$£¥]|kr|zł)\s*-?\d[\d\s.,]*|\d[\d\s.,]*\s*(?:€|\$|£|¥|kr|zł))\b/i
   ]
 } as const;
 
