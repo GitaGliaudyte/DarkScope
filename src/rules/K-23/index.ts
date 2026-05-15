@@ -1,41 +1,40 @@
-import { createErrorResult, createNotApplicableResult } from '../../engine/ruleEngine';
 import { defaultPageClassifier } from '../../engine/pageClassifier';
+import { createErrorResult, createNotApplicableResult } from '../../engine/ruleEngine';
 import { AnalysisContext, RuleDefinition, RuleResult } from '../../engine/types';
 import { buildVisualTarget, createRuleResult } from '../../rules-utilities/resultUtils';
 import { RULE_ID } from './constants';
-import { evaluateGroup, evaluatePercentageOnlyGroup, findPriceGroups } from './probing';
+import { findHigherPricedFindings, findProductGroups } from './probing';
 import { computeScore, getConfidence, getImpact, getProbability } from './scoring';
-import { GroupEvaluation } from './types';
+import { CardFinding } from './types';
 
 /**
- * Runs the K-16 deceptive discount evaluation synchronously against the live document.
+ * Runs the K-23 higher-price visual-emphasis evaluation synchronously against the live document.
  */
 export function evaluate(context: AnalysisContext): RuleResult {
   try {
-    if (context.pageContext.type !== 'product' && context.pageContext.type !== 'cart') {
+    if (context.pageContext.type !== 'product' && context.pageContext.type !== 'checkout') {
       return createNotApplicableResult(RULE_ID);
     }
 
-    const searchResult = findPriceGroups(document);
-
-    if (!searchResult.hasAnyPrice) {
+    if (!(document.body instanceof HTMLElement)) {
       return createNotApplicableResult(RULE_ID);
     }
 
-    const groupedEvaluations = searchResult.groups
-      .map((group) => evaluateGroup(group))
-      .filter((group): group is GroupEvaluation => group !== null);
-    const percentageOnlyEvaluations =
-      searchResult.percentageOnlyGroups.length === 0
-        ? []
-        : searchResult.percentageOnlyGroups.map((group) => evaluatePercentageOnlyGroup(group));
+    const groups = findProductGroups(document);
 
-    if (!searchResult.hasOriginalPrice && percentageOnlyEvaluations.length === 0) {
-      return createNotApplicableResult(RULE_ID);
+    if (groups.length === 0) {
+      return createRuleResult({
+        ruleId: RULE_ID,
+        detected: false,
+        probability: 0,
+        confidence: 'low',
+        impact: 'low',
+        visualTarget: buildVisualTarget([]),
+        occurrenceCount: 0
+      });
     }
 
-    const evaluations = [...groupedEvaluations, ...percentageOnlyEvaluations];
-    const findings = evaluations.filter((group) => group.hasSuspiciousPercentage || group.hasInconsistentMath);
+    const findings = findHigherPricedFindings(groups);
 
     if (findings.length === 0) {
       return createRuleResult({
@@ -49,8 +48,8 @@ export function evaluate(context: AnalysisContext): RuleResult {
       });
     }
 
-    const scoreSummary = computeScore(evaluations);
-    const evidence: RuleResult['evidence'] = findings.map((finding) => ({
+    const scoreSummary = computeScore(findings);
+    const evidence: RuleResult['evidence'] = findings.map((finding: CardFinding) => ({
       selector: finding.selector,
       text: finding.text,
       reason: finding.reason,
@@ -62,7 +61,7 @@ export function evaluate(context: AnalysisContext): RuleResult {
       detected: scoreSummary.rawScore > 0,
       probability: getProbability(scoreSummary),
       confidence: getConfidence(scoreSummary),
-      impact: getImpact(evaluations),
+      impact: getImpact(findings),
       evidence,
       visualTarget: buildVisualTarget(findings.map((finding) => finding.visualSelector)),
       occurrenceCount: findings.length
@@ -77,7 +76,7 @@ export const rule: RuleDefinition = {
   pageClassifier: defaultPageClassifier,
   relevantOn: [],
   skipIfNotRelevant: false,
-  relevantContexts: ['product', 'cart'],
+  relevantContexts: ['product'],
   detect(context: AnalysisContext): RuleResult {
     return evaluate(context);
   }

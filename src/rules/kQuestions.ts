@@ -52,14 +52,21 @@ export const K_QUESTIONS: KQuestion[] = [
     label: 'Are the displayed discount numbers deceptive - either an implausibly large discount (>70%) or a mathematically inconsistent price?',
     weight: 2,
     principles: { P4: 1, P6: 0.5 },
-    relevantContexts: ['product']
+    relevantContexts: ['product', 'cart']
   },
   {
     id: 'K-20',
     label: 'Does an element in the top layer occupy more than 50% of the total screen size?',
     weight: 2,
     principles: { P2: 1, P4: 0.5 },
-    relevantContexts: ['product', 'checkout']
+    relevantContexts: ['product', 'checkout', 'cart', 'account_settings']
+  },
+  {
+    id: 'K-23',
+    label: 'Does the more expensive option have greater visual weight than the others?',
+    weight: 2,
+    principles: { P2: 0.5, P4: 1, P6: 0.5 },
+    relevantContexts: ['product']
   },
   {
     id: 'K-51',
