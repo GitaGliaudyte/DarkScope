@@ -17,6 +17,8 @@ import {
   MAX_PRICE_GROUPS,
   MAX_PRICE_VALUE,
   MAX_PROXIMITY_PX,
+  MAX_RANGE_CONTEXT_DEPTH,
+  MAX_RANGE_CONTEXT_TEXT_LENGTH,
   MAX_SHIPPING_CONTEXT_DEPTH,
   MAX_SHIPPING_CONTEXT_TEXT_LENGTH,
   ORIGINAL_PRICE_KEYWORDS,
@@ -26,7 +28,7 @@ import {
   SHIPPING_PRICE_SELECTORS,
   SUPPLEMENTAL_CONTAINER_SELECTOR
 } from './constants';
-import { extractPriceTokens, extractTextPrice, parseDiscountLabel, parsePrice } from './parsing';
+import { extractPriceTokens, extractTextPrice, isPriceRangeText, parseDiscountLabel, parsePrice } from './parsing';
 import { DiscountLabelCandidate, GroupEvaluation, PercentageOnlyGroup, PriceCandidate, PriceGroup, PriceGroupSearchResult } from './types';
 
 function getPrimaryFindingTarget(group: PriceGroup, hasSuspiciousPercentage: boolean): PriceCandidate | DiscountLabelCandidate {
@@ -290,6 +292,24 @@ function isDedicatedShippingPriceText(text: string): boolean {
   return /^(?:free\s+)?(?:shipping|delivery|postage|freight|handling)\b/.test(normalized);
 }
 
+function isPriceRangeContext(element: HTMLElement): boolean {
+  let current: HTMLElement | null = element;
+  let depth = 0;
+
+  while (current !== null && depth <= MAX_RANGE_CONTEXT_DEPTH) {
+    const text = getElementText(current);
+
+    if (text.length > 0 && text.length <= MAX_RANGE_CONTEXT_TEXT_LENGTH && isPriceRangeText(text)) {
+      return true;
+    }
+
+    current = current.parentElement;
+    depth += 1;
+  }
+
+  return false;
+}
+
 function isShippingRelatedElement(element: HTMLElement, text: string, attributeBlob: string): boolean {
   if (SHIPPING_PRICE_SELECTORS.some((selector) => element.matches(selector))) {
     return true;
@@ -496,6 +516,10 @@ export function findPriceGroups(doc: Document = document): PriceGroupSearchResul
           continue;
         }
 
+        if (isPriceRangeContext(element)) {
+          continue;
+        }
+
         const isOriginal = isOriginalPriceElement(element, attributeBlob);
 
         if (isOriginal) {
@@ -509,7 +533,12 @@ export function findPriceGroups(doc: Document = document): PriceGroupSearchResul
       }
     }
 
-    if (parsedDiscount !== null && isAtomicCandidateElement(element, text) && !containsMatchingDiscountDescendant(element, parsedDiscount)) {
+    if (
+      parsedDiscount !== null &&
+      isAtomicCandidateElement(element, text) &&
+      !isPriceRangeContext(element) &&
+      !containsMatchingDiscountDescendant(element, parsedDiscount)
+    ) {
       discountLabels.push({
         element,
         selector: generateUniqueSelector(element),

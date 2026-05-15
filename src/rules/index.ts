@@ -8,6 +8,7 @@ import K11Rule from './K-11';
 import K13Rule from './K-13';
 import K16Rule from './K-16';
 import K20Rule from './K-20';
+import K23Rule from './K-23';
 import K51Rule from './K-51';
 import K53Rule from './K-53';
 import K55Rule from './K-55';
@@ -23,7 +24,9 @@ export const rules: RuleDefinition[] = [
   K06Rule,
   K11Rule,
   K13Rule,
+  K16Rule,
   K20Rule,
+  K23Rule,
   K51Rule,
   K53Rule,
   K55Rule,
