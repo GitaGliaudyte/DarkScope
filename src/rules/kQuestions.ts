@@ -90,6 +90,13 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product', 'checkout', 'registration', 'generic']
   },
   {
+    id: 'K-42',
+    label: "Are you asked to provide more than just your email and password when registering?",
+    weight: 2,
+    principles: { P3: 1, P4: 0.5 },
+    relevantContexts: ['registration']
+  },
+  {
     id: 'K-51',
     label: 'Are videos or other content playing automatically?',
     weight: 2,
@@ -109,6 +116,13 @@ export const K_QUESTIONS: KQuestion[] = [
     weight: 2,
     principles: { P2: 0.5, P3: 0.5, P6: 0.5 },
     relevantContexts: ['product', 'cart', 'checkout']
+  },
+  {
+    id: 'K-57',
+    label: 'Are there frequently repeated words among the reviews? Are there no user identifications in the reviews?',
+    weight: 2,
+    principles: { P2: 0.5, P4: 1, P7: 0.5 },
+    relevantContexts: ['product']
   },
   {
     id: 'K-58',
