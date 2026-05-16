@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { RealPopupHome } from '@/popup/components/RealPopupHome';
-import { RealPopupInfoScreen } from '@/popup/components/RealPopupInfoScreen';
-import { RealPopupResults } from '@/popup/components/RealPopupResults';
-import { RealPopupResultsDetailsScreen } from '@/popup/components/RealPopupResultsDetailsScreen';
-import { RealPopupSettingsScreen } from '@/popup/components/RealPopupSettingsScreen';
+import { PopupHome } from '@/popup/components/PopupHome';
+import { PopupInfoScreen } from '@/popup/components/PopupInfoScreen';
+import { PopupResults } from '@/popup/components/PopupResults';
+import { PopupResultsDetailsScreen } from '@/popup/components/PopupResultsDetailsScreen';
+import { PopupSettingsScreen } from '@/popup/components/PopupSettingsScreen';
 import { TestingPopupView } from '@/popup/components/TestingPopupView';
 import { PopupModeSwitch } from '@/popup/components/PopupModeSwitch';
 import { RuleResult } from '@/engine/types';
@@ -332,7 +332,7 @@ function App(): React.JSX.Element {
         <section className="space-y-4">
           <PopupModeSwitch mode={surfaceMode} onModeChange={handleSurfaceModeChange} />
           {realPopupScreen === 'results' && results.length > 0 ? (
-            <RealPopupResults
+            <PopupResults
               audienceMode={audienceMode}
               overlayEnabled={overlayEnabled}
               results={results}
@@ -346,21 +346,21 @@ function App(): React.JSX.Element {
               onStartOver={handleStartOver}
             />
           ) : realPopupScreen === 'results_details' && results.length > 0 ? (
-            <RealPopupResultsDetailsScreen
+            <PopupResultsDetailsScreen
               audienceMode={audienceMode}
               results={results}
               onBack={() => setRealPopupScreen('results')}
             />
           ) : realPopupScreen === 'settings' ? (
-            <RealPopupSettingsScreen
+            <PopupSettingsScreen
               audienceMode={audienceMode}
               onAudienceModeChange={handleAudienceModeChange}
               onBack={() => setRealPopupScreen('home')}
             />
           ) : realPopupScreen === 'info' ? (
-            <RealPopupInfoScreen onBack={() => setRealPopupScreen('home')} />
+            <PopupInfoScreen onBack={() => setRealPopupScreen('home')} />
           ) : (
-            <RealPopupHome
+            <PopupHome
               audienceMode={audienceMode}
               isScanning={isScanning}
               statusMessage={statusMessage}

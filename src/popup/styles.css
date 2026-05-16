@@ -65,9 +65,6 @@
     width: 380px;
     min-height: 560px;
     font-family: ui-sans-serif, system-ui, sans-serif;
-    background-image:
-      radial-gradient(circle at top left, rgb(125 211 252 / 0.18), transparent 34%),
-      radial-gradient(circle at top right, rgb(251 191 36 / 0.12), transparent 28%),
-      linear-gradient(180deg, rgb(255 255 255 / 0.96), rgb(245 247 250 / 0.98));
+    background: rgb(248 250 252);
   }
 }

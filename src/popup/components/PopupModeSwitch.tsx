@@ -1,7 +1,7 @@
 import { FlaskConical, MonitorSmartphone } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { PopupSurfaceMode } from '../types';
+import { PopupModeSwitchBody, PopupModeSwitchCard } from './PopupPrimitives';
 
 interface PopupModeSwitchProps {
   mode: PopupSurfaceMode;
@@ -12,8 +12,8 @@ export function PopupModeSwitch({ mode, onModeChange }: PopupModeSwitchProps) {
   const isUserMode = mode === 'user';
 
   return (
-    <Card className="border-sky-100/80 bg-white/80 shadow-[0_12px_32px_-24px_rgba(15,23,42,0.55)] backdrop-blur">
-      <CardContent className="flex items-center justify-between gap-4 p-4">
+    <PopupModeSwitchCard>
+      <PopupModeSwitchBody>
         <div className="space-y-1">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-700">Popup surface</p>
           <div className="flex items-center gap-2 text-sm font-medium text-slate-900">
@@ -26,7 +26,7 @@ export function PopupModeSwitch({ mode, onModeChange }: PopupModeSwitchProps) {
           <Switch checked={isUserMode} onCheckedChange={(checked) => onModeChange(checked ? 'user' : 'testing')} />
           <span className={`text-xs font-medium ${isUserMode ? 'text-sky-700' : 'text-slate-400'}`}>User</span>
         </div>
-      </CardContent>
-    </Card>
+      </PopupModeSwitchBody>
+    </PopupModeSwitchCard>
   );
 }

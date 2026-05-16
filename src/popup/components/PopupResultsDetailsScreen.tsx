@@ -1,12 +1,11 @@
-import { ArrowLeft, ShieldAlert, ShieldCheck, TriangleAlert } from 'lucide-react';
+import { ShieldAlert, ShieldCheck, TriangleAlert } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RuleResult } from '@/engine/types';
 import { AudienceMode } from '../types';
+import { PopupDetailPanel, PopupResultsCard, PopupResultsCardBody, PopupScreenHeader } from './PopupPrimitives';
 
-interface RealPopupResultsDetailsScreenProps {
+interface PopupResultsDetailsScreenProps {
   audienceMode: AudienceMode;
   results: RuleResult[];
   onBack: () => void;
@@ -28,43 +27,30 @@ function statusBadge(result: RuleResult): 'default' | 'secondary' | 'destructive
   return 'outline';
 }
 
-export function RealPopupResultsDetailsScreen({
+export function PopupResultsDetailsScreen({
   audienceMode,
   results,
   onBack
-}: RealPopupResultsDetailsScreenProps) {
+}: PopupResultsDetailsScreenProps) {
   const sortedResults = [...results].sort((left, right) => Number(right.detected) - Number(left.detected));
   const isUserAudience = audienceMode === 'user';
 
   return (
-    <Card className="overflow-hidden border-white/70 bg-white/88 shadow-[0_22px_54px_-30px_rgba(15,23,42,0.55)] backdrop-blur">
-      <CardHeader className="gap-4 pb-4">
-        <div className="space-y-4">
-          <Button
-            variant="ghost"
-            className="w-fit rounded-full border border-slate-200 bg-white/75 px-3 text-sm text-slate-600 shadow-[0_10px_22px_-20px_rgba(15,23,42,0.5)] hover:bg-white hover:text-slate-950"
-            onClick={onBack}
-          >
-            <ArrowLeft className="size-4" />
-            Go back
-          </Button>
-          <div className="space-y-1">
-            <CardTitle className="text-xl text-slate-950">Analysis details</CardTitle>
-            <CardDescription className="text-sm text-slate-600">Rule-by-rule results for this scan.</CardDescription>
-          </div>
-        </div>
-      </CardHeader>
+    <PopupResultsCard>
+      <PopupScreenHeader
+        title="Analysis details"
+        description="Rule-by-rule results for this scan."
+        onBack={onBack}
+        backTone="raised"
+      />
 
-      <CardContent>
-        <ScrollArea className="h-[320px] rounded-[1.5rem] border border-slate-200/90 bg-[linear-gradient(180deg,rgba(248,250,252,0.95),rgba(241,245,249,0.82))] p-1">
+      <PopupResultsCardBody>
+        <ScrollArea className="h-[320px] rounded-lg border border-slate-200 bg-slate-50 p-1">
           <div className="space-y-3 p-3">
             {sortedResults.map((result) => {
               const Icon = result.status === 'error' ? TriangleAlert : result.detected ? ShieldAlert : ShieldCheck;
               return (
-                <article
-                  key={result.ruleId}
-                  className="rounded-2xl border border-white/90 bg-white/96 p-4 shadow-[0_16px_30px_-26px_rgba(15,23,42,0.5)]"
-                >
+                <PopupDetailPanel key={result.ruleId}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
@@ -96,17 +82,17 @@ export function RealPopupResultsDetailsScreen({
                     {result.explanation ? <p>{result.explanation}</p> : null}
                     {result.recommendation ? <p className="text-slate-500">{result.recommendation}</p> : null}
                     {isUserAudience ? null : (
-                      <div className="rounded-xl border border-slate-200 bg-slate-50/85 p-3 text-xs text-slate-600">
+                      <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
                         Confidence {result.confidence} | Probability {Math.round(result.probability * 100)}% | Evidence {result.evidence.length} | Occurrences {result.occurrenceCount}
                       </div>
                     )}
                   </div>
-                </article>
+                </PopupDetailPanel>
               );
             })}
           </div>
         </ScrollArea>
-      </CardContent>
-    </Card>
+      </PopupResultsCardBody>
+    </PopupResultsCard>
   );
 }

@@ -1,36 +1,23 @@
-import { ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { AudienceMode } from '../types';
+import { PopupCard, PopupCardBody, PopupMutedPanel, PopupScreenHeader } from './PopupPrimitives';
 
-interface RealPopupSettingsScreenProps {
+interface PopupSettingsScreenProps {
   audienceMode: AudienceMode;
   onAudienceModeChange: (mode: AudienceMode) => void;
   onBack: () => void;
 }
 
-export function RealPopupSettingsScreen({
+export function PopupSettingsScreen({
   audienceMode,
   onAudienceModeChange,
   onBack
-}: RealPopupSettingsScreenProps) {
+}: PopupSettingsScreenProps) {
   return (
-    <Card className="overflow-hidden border-white/60 bg-white/90 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.65)] backdrop-blur">
-      <CardHeader className="gap-4 pb-4">
-        <div className="space-y-4">
-          <Button variant="ghost" className="w-fit px-0 text-sm text-slate-600 hover:bg-transparent hover:text-slate-950" onClick={onBack}>
-            <ArrowLeft className="size-4" />
-            Go back
-          </Button>
-          <div className="space-y-1">
-            <CardTitle className="text-xl text-slate-950">Settings</CardTitle>
-            <CardDescription className="text-sm text-slate-600">Choose how results should be presented.</CardDescription>
-          </div>
-        </div>
-      </CardHeader>
+    <PopupCard>
+      <PopupScreenHeader title="Settings" description="Choose how results should be presented." onBack={onBack} />
 
-      <CardContent className="space-y-3">
+      <PopupCardBody>
         <p className="text-sm font-medium text-slate-900">
           Display mode
         </p>
@@ -57,12 +44,12 @@ export function RealPopupSettingsScreen({
             );
           })}
         </div>
-        <p className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+        <PopupMutedPanel>
           {audienceMode === 'user'
             ? 'USER mode keeps the output simpler.'
             : 'DESIGNER mode shows more rule-level detail.'}
-        </p>
-      </CardContent>
-    </Card>
+        </PopupMutedPanel>
+      </PopupCardBody>
+    </PopupCard>
   );
 }
