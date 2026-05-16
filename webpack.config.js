@@ -17,10 +17,17 @@ module.exports = {
     clean: true
   },
   resolve: {
-    extensions: ['.ts', '.tsx', '.js']
+    extensions: ['.ts', '.tsx', '.js'],
+    alias: {
+      '@': path.resolve(__dirname, 'src')
+    }
   },
   module: {
     rules: [
+      {
+        test: /\.css$/i,
+        use: ['style-loader', 'css-loader', 'postcss-loader']
+      },
       {
         test: /\.tsx?$/,
         exclude: /node_modules/,

@@ -7,6 +7,9 @@
     "strict": true,
     "outDir": "./dist",
     "baseUrl": "./src",
+    "paths": {
+      "@/*": ["./*"]
+    },
     "lib": ["DOM", "ES2020"],
     "types": ["chrome", "react", "react-dom"],
     "skipLibCheck": true,
