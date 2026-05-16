@@ -178,18 +178,20 @@ export function TestingPopupView({
           {overlayEnabled ? 'Hide overlay' : 'Show overlay'}
         </button>
 
-        <div
-          style={{
-            padding: '8px 10px',
-            borderRadius: '6px',
-            background: '#f8fafc',
-            border: `1px solid ${statusTone === 'neutral' ? '#e2e8f0' : toneColor(statusTone)}`,
-            color: toneColor(statusTone),
-            fontSize: '12px'
-          }}
-        >
-          {statusMessage}
-        </div>
+        {statusTone === 'error' ? (
+          <div
+            style={{
+              padding: '8px 10px',
+              borderRadius: '6px',
+              background: '#f8fafc',
+              border: `1px solid ${toneColor(statusTone)}`,
+              color: toneColor(statusTone),
+              fontSize: '12px'
+            }}
+          >
+            {statusMessage}
+          </div>
+        ) : null}
       </section>
 
       <section

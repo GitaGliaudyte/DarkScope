@@ -8,7 +8,7 @@ import { PopupSettingsScreen } from '@/popup/components/PopupSettingsScreen';
 import { TestingPopupView } from '@/popup/components/TestingPopupView';
 import { PopupModeSwitch } from '@/popup/components/PopupModeSwitch';
 import { RuleResult } from '@/engine/types';
-import { AudienceMode, PopupStatusTone, PopupSurfaceMode, RealPopupScreen } from './types';
+import { AudienceMode, PopupScreen, PopupStatusTone, PopupSurfaceMode } from './types';
 import './styles.css';
 
 interface ScanResponse {
@@ -202,7 +202,7 @@ function App(): React.JSX.Element {
   const [statusTone, setStatusTone] = useState<PopupStatusTone>('neutral');
   const [surfaceMode, setSurfaceMode] = useState<PopupSurfaceMode>('testing');
   const [audienceMode, setAudienceMode] = useState<AudienceMode>('user');
-  const [realPopupScreen, setRealPopupScreen] = useState<RealPopupScreen>('home');
+  const [popupScreen, setPopupScreen] = useState<PopupScreen>('home');
 
   useEffect(() => {
     void loadApiKey().then((storedKey) => {
@@ -243,7 +243,7 @@ function App(): React.JSX.Element {
       setOverlayEnabledState(response.overlayEnabled === true);
       setStatusTone('success');
       setStatusMessage(`Analysis complete. ${nextResults.filter((result) => result.detected).length} issues detected.`);
-      setRealPopupScreen('results');
+      setPopupScreen('results');
     } catch (error) {
       setStatusTone('error');
       setStatusMessage(getPopupErrorMessage(error));
@@ -273,7 +273,7 @@ function App(): React.JSX.Element {
     void savePopupSetting('popup_surface_mode', nextMode);
 
     if (nextMode === 'user' && results.length > 0) {
-      setRealPopupScreen('results');
+      setPopupScreen('results');
     }
   };
 
@@ -289,7 +289,7 @@ function App(): React.JSX.Element {
 
     setResults([]);
     setOverlayEnabledState(false);
-    setRealPopupScreen('home');
+    setPopupScreen('home');
     setStatusTone('neutral');
     setStatusMessage('Ready to scan the active tab.');
   };
@@ -331,12 +331,12 @@ function App(): React.JSX.Element {
       ) : (
         <section className="space-y-4">
           <PopupModeSwitch mode={surfaceMode} onModeChange={handleSurfaceModeChange} />
-          {realPopupScreen === 'results' && results.length > 0 ? (
+          {popupScreen === 'results' && results.length > 0 ? (
             <PopupResults
               audienceMode={audienceMode}
               overlayEnabled={overlayEnabled}
               results={results}
-              onLearnMore={() => setRealPopupScreen('results_details')}
+              onLearnMore={() => setPopupScreen('results_details')}
               onToggleOverlay={() =>
                 void handleSetOverlayEnabled(
                   !overlayEnabled,
@@ -345,28 +345,28 @@ function App(): React.JSX.Element {
               }
               onStartOver={handleStartOver}
             />
-          ) : realPopupScreen === 'results_details' && results.length > 0 ? (
+          ) : popupScreen === 'results_details' && results.length > 0 ? (
             <PopupResultsDetailsScreen
               audienceMode={audienceMode}
               results={results}
-              onBack={() => setRealPopupScreen('results')}
+              onBack={() => setPopupScreen('results')}
             />
-          ) : realPopupScreen === 'settings' ? (
+          ) : popupScreen === 'settings' ? (
             <PopupSettingsScreen
               audienceMode={audienceMode}
               onAudienceModeChange={handleAudienceModeChange}
-              onBack={() => setRealPopupScreen('home')}
+              onBack={() => setPopupScreen('home')}
             />
-          ) : realPopupScreen === 'info' ? (
-            <PopupInfoScreen onBack={() => setRealPopupScreen('home')} />
+          ) : popupScreen === 'info' ? (
+            <PopupInfoScreen onBack={() => setPopupScreen('home')} />
           ) : (
             <PopupHome
               audienceMode={audienceMode}
               isScanning={isScanning}
               statusMessage={statusMessage}
               statusTone={statusTone}
-              onOpenSettings={() => setRealPopupScreen('settings')}
-              onOpenInfo={() => setRealPopupScreen('info')}
+              onOpenSettings={() => setPopupScreen('settings')}
+              onOpenInfo={() => setPopupScreen('info')}
               onRunAnalysis={() => void handleScan()}
             />
           )}

@@ -1,4 +1,4 @@
-import { CircleHelp, LoaderCircle, Settings2 } from 'lucide-react';
+import { CircleHelp, Cog, LoaderCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AudienceMode, PopupStatusTone } from '../types';
@@ -43,7 +43,7 @@ export function PopupHome({
             </Badge>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="icon" aria-label="Popup settings" onClick={onOpenSettings}>
-                <Settings2 className="size-4" />
+                <Cog className="size-4" />
               </Button>
               <Button variant="outline" size="icon" aria-label="How DarkScope works" onClick={onOpenInfo}>
                 <CircleHelp className="size-4" />
@@ -65,7 +65,9 @@ export function PopupHome({
           )}
         </Button>
 
-        <PopupStatusMessage tone={statusTone}>{statusMessage}</PopupStatusMessage>
+        {statusTone === 'error' ? (
+          <PopupStatusMessage tone={statusTone}>{statusMessage}</PopupStatusMessage>
+        ) : null}
       </PopupHomeCardBody>
     </PopupHomeCard>
   );
