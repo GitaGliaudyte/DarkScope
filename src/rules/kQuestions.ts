@@ -83,6 +83,13 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product']
   },
   {
+    id: 'K-34',
+    label: "Is important information on the page presented in a different language than the rest of the system's content?",
+    weight: 2,
+    principles: { P3: 1, P4: 0.5 },
+    relevantContexts: ['product', 'checkout', 'registration', 'generic']
+  },
+  {
     id: 'K-51',
     label: 'Are videos or other content playing automatically?',
     weight: 2,
