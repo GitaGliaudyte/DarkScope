@@ -215,7 +215,7 @@ export const rule: RuleDefinition = {
   pageClassifier: defaultPageClassifier,
   relevantOn: [],
   skipIfNotRelevant: false,
-  relevantContexts: ['product', 'checkout', 'registration', 'generic'],
+  relevantContexts: ['product', 'checkout', 'account_settings', 'cart', 'registration', 'generic'],
   detect(context: AnalysisContext): Promise<RuleResult> {
     return evaluate(context);
   }
