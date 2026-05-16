@@ -151,6 +151,13 @@ export const K_QUESTIONS: KQuestion[] = [
     weight: 2,
     principles: { P2: 0.5, P3: 0.5, P6: 0.5 },
     relevantContexts: ['product', 'cart', 'checkout', 'registration', 'account_settings']
+  },
+  {
+    id: 'K-63',
+    label: 'Can a user only see personalized content? Can a user disable content personalization?',
+    weight: 2,
+    principles: { P2: 0.5, P3: 0.5, P6: 0.5 },
+    relevantContexts: ['product', 'account_settings', 'generic']
   }
 ];
 
