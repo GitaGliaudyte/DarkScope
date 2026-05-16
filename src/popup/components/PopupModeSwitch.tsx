@@ -15,9 +15,7 @@ export function PopupModeSwitch({ mode, onModeChange }: PopupModeSwitchProps) {
     <PopupModeSwitchCard>
       <PopupModeSwitchBody>
         <div className="space-y-1">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-700">Popup surface</p>
           <div className="flex items-center gap-2 text-sm font-medium text-slate-900">
-            {isUserMode ? <MonitorSmartphone className="size-4 text-sky-700" /> : <FlaskConical className="size-4 text-amber-700" />}
             <span>{isUserMode ? 'User-facing UI' : 'Testing UI'}</span>
           </div>
         </div>
