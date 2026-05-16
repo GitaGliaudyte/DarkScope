@@ -83,6 +83,13 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product', 'cart', 'checkout']
   },
   {
+    id: 'K-57',
+    label: 'Are there frequently repeated words among the reviews? Are there no user identifications in the reviews?',
+    weight: 2,
+    principles: { P2: 0.5, P4: 1, P7: 0.5 },
+    relevantContexts: ['product']
+  },
+  {
     id: 'K-58',
     label: 'Does the interface provide information about the activity of other (real or fictional) users (e.g. "X just bought Y", "N users are viewing this item")?',
     weight: 2,
