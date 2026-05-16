@@ -90,6 +90,13 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product', 'checkout', 'registration', 'generic']
   },
   {
+    id: 'K-42',
+    label: "Are you asked to provide more than just your email and password when registering?",
+    weight: 2,
+    principles: { P3: 1, P4: 0.5 },
+    relevantContexts: ['registration']
+  },
+  {
     id: 'K-51',
     label: 'Are videos or other content playing automatically?',
     weight: 2,
