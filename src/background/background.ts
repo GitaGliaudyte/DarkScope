@@ -4,11 +4,18 @@ interface LlmRequestMessage {
   payload: {
     prompt: string;
     maxTokens?: number;
+    responseMimeType?: 'application/json';
+    responseSchema?: Record<string, unknown>;
+    thinkingBudget?: number;
   };
 }
 
 interface LlmSuccessResponse {
   text: string;
+  finishReason?: string;
+  promptTokenCount?: number;
+  outputTokenCount?: number;
+  thoughtsTokenCount?: number;
 }
 
 interface LlmErrorResponse {
@@ -47,10 +54,17 @@ interface GeminiCandidate {
   content?: {
     parts?: GeminiTextPart[];
   };
+  finishReason?: string;
 }
 
 interface GeminiGenerateContentResponse {
   candidates?: GeminiCandidate[];
+  usageMetadata?: {
+    promptTokenCount?: number;
+    candidatesTokenCount?: number;
+    thoughtsTokenCount?: number;
+    totalTokenCount?: number;
+  };
   error?: {
     message?: string;
   };
@@ -61,6 +75,17 @@ const LINK_CHECK_TIMEOUT_MS = 3000;
 
 function summarizePrompt(prompt: string): string {
   return prompt.replace(/\s+/g, ' ').trim().slice(0, 200);
+}
+
+function shouldRequestJsonResponse(prompt: string): boolean {
+  const normalized = prompt.toLowerCase();
+
+  return (
+    normalized.includes('respond only with a valid json object') ||
+    normalized.includes('return json only') ||
+    normalized.includes('return valid json only') ||
+    normalized.includes('exact shape:')
+  );
 }
 
 function getApiKey(): Promise<string | undefined> {
@@ -78,6 +103,10 @@ function isRuntimeMessage(message: unknown): message is LlmRequestMessage | Link
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'unknown_error';
+}
+
+function previewText(value: string, maxLength = 240): string {
+  return value.replace(/\s+/g, ' ').trim().slice(0, maxLength);
 }
 
 async function fetchUrlWithTimeout(url: string, method: 'HEAD' | 'GET'): Promise<LinkCheckResponse> {
@@ -231,6 +260,36 @@ async function handleLlmRequest(message: LlmRequestMessage): Promise<LlmSuccessR
   }
 
   try {
+    const prompt = message.payload.prompt;
+    const generationConfig: {
+      maxOutputTokens: number;
+      temperature: number;
+      responseMimeType?: 'application/json';
+      responseSchema?: Record<string, unknown>;
+      thinkingConfig?: {
+        thinkingBudget: number;
+      };
+    } = {
+      maxOutputTokens: message.payload.maxTokens ?? 300,
+      temperature: 0.2
+    };
+
+    if (message.payload.responseMimeType !== undefined) {
+      generationConfig.responseMimeType = message.payload.responseMimeType;
+    } else if (shouldRequestJsonResponse(prompt)) {
+      generationConfig.responseMimeType = 'application/json';
+    }
+
+    if (message.payload.responseSchema !== undefined) {
+      generationConfig.responseSchema = message.payload.responseSchema;
+    }
+
+    if (typeof message.payload.thinkingBudget === 'number') {
+      generationConfig.thinkingConfig = {
+        thinkingBudget: message.payload.thinkingBudget
+      };
+    }
+
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`, {
       method: 'POST',
       headers: {
@@ -242,15 +301,12 @@ async function handleLlmRequest(message: LlmRequestMessage): Promise<LlmSuccessR
           {
             parts: [
               {
-                text: message.payload.prompt
+                text: prompt
               }
             ]
           }
         ],
-        generationConfig: {
-          maxOutputTokens: message.payload.maxTokens ?? 300,
-          temperature: 0.2
-        }
+        generationConfig
       })
     });
 
@@ -260,8 +316,9 @@ async function handleLlmRequest(message: LlmRequestMessage): Promise<LlmSuccessR
       return { error: data.error?.message ?? `gemini_http_${response.status}` };
     }
 
-    const text = data.candidates
-      ?.flatMap((candidate) => candidate.content?.parts ?? [])
+    const primaryCandidate = data.candidates?.[0];
+    const finishReason = typeof primaryCandidate?.finishReason === 'string' ? primaryCandidate.finishReason : undefined;
+    const text = (primaryCandidate?.content?.parts ?? [])
       .map((part) => (typeof part.text === 'string' ? part.text : ''))
       .join('')
       .trim();
@@ -270,7 +327,13 @@ async function handleLlmRequest(message: LlmRequestMessage): Promise<LlmSuccessR
       return { error: 'empty_response' };
     }
 
-    return { text };
+    return {
+      text,
+      finishReason,
+      promptTokenCount: data.usageMetadata?.promptTokenCount,
+      outputTokenCount: data.usageMetadata?.candidatesTokenCount,
+      thoughtsTokenCount: data.usageMetadata?.thoughtsTokenCount
+    };
   } catch (error) {
     return {
       error: error instanceof Error ? error.message : 'unknown_error'

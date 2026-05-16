@@ -91,6 +91,9 @@ export type ViolationProfile = Record<PrincipleId, number>;
 export interface LlmRequestPayload {
   prompt: string;
   maxTokens?: number;
+  responseMimeType?: 'application/json';
+  responseSchema?: Record<string, unknown>;
+  thinkingBudget?: number;
 }
 
 export interface LlmProxyRequest {
@@ -100,6 +103,10 @@ export interface LlmProxyRequest {
 
 export interface LlmProxySuccessResponse {
   text: string;
+  finishReason?: string;
+  promptTokenCount?: number;
+  outputTokenCount?: number;
+  thoughtsTokenCount?: number;
 }
 
 export interface LlmProxyErrorResponse {
