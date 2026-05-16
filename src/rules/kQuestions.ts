@@ -97,6 +97,13 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product', 'checkout', 'cart', 'account_settings', 'generic']
   },
   {
+    id: 'K-46',
+    label: 'Are the newsletter and marketing checkboxes checked by default?',
+    weight: 2,
+    principles: { P2: 1, P3: 0.5 },
+    relevantContexts: ['checkout', 'account_settings', 'registration', 'generic']
+  },
+  {
     id: 'K-42',
     label: "Are you asked to provide more than just your email and password when registering?",
     weight: 2,
