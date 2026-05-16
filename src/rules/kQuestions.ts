@@ -90,6 +90,13 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product', 'checkout', 'registration', 'generic']
   },
   {
+    id: 'K-38',
+    label: 'Are there any automatic pop-ups or modals that appear without user interaction?',
+    weight: 2,
+    principles: { P2: 1, P3: 0.5 },
+    relevantContexts: ['product', 'checkout', 'cart', 'account_settings', 'generic']
+  },
+  {
     id: 'K-42',
     label: "Are you asked to provide more than just your email and password when registering?",
     weight: 2,
