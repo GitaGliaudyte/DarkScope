@@ -44,11 +44,6 @@ export function PopupSettingsScreen({
             );
           })}
         </div>
-        <PopupMutedPanel>
-          {audienceMode === 'user'
-            ? 'USER mode keeps the output simpler.'
-            : 'DESIGNER mode shows more rule-level detail.'}
-        </PopupMutedPanel>
       </PopupCardBody>
     </PopupCard>
   );
