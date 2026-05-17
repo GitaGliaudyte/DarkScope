@@ -1,48 +1,19 @@
 // This file draws and maintains non-interactive overlay highlights over detected dark pattern targets.
+import { getRuleColor } from './ruleColors';
 import { RuleResult } from './types';
 
 const OVERLAY_ID = '__darkscope_overlay';
 const HIGHLIGHT_PADDING = 4;
-const RULE_COLORS: Record<string, { border: string; background: string; label: string }> = {
-  'K-02': { border: 'rgba(230,126,34,0.8)', background: 'rgba(230,126,34,0.08)', label: 'rgba(230,126,34,0.9)' },
-  'K-04': { border: 'rgba(226,75,74,0.8)', background: 'rgba(226,75,74,0.08)', label: 'rgba(226,75,74,0.9)' },
-  'K-05': { border: 'rgba(234,147,40,0.8)', background: 'rgba(234,147,40,0.08)', label: 'rgba(234,147,40,0.9)' },
-  'K-06': { border: 'rgba(52,168,83,0.8)', background: 'rgba(52,168,83,0.08)', label: 'rgba(52,168,83,0.9)' },
-  'K-11': { border: 'rgba(66,133,244,0.8)', background: 'rgba(66,133,244,0.08)', label: 'rgba(66,133,244,0.9)' },
-  'K-12': { border: 'rgba(155,89,182,0.8)', background: 'rgba(155,89,182,0.08)', label: 'rgba(155,89,182,0.9)' },
-  'K-13': { border: 'rgba(26,188,156,0.8)', background: 'rgba(26,188,156,0.08)', label: 'rgba(26,188,156,0.9)' },
-  'K-16': { border: 'rgba(39,174,96,0.8)', background: 'rgba(39,174,96,0.08)', label: 'rgba(39,174,96,0.9)' },
-  'K-18': { border: 'rgba(241,196,15,0.8)', background: 'rgba(241,196,15,0.08)', label: 'rgba(241,196,15,0.9)' },
-  'K-20': { border: 'rgba(231,76,60,0.8)', background: 'rgba(231,76,60,0.08)', label: 'rgba(231,76,60,0.9)' },
-  'K-23': { border: 'rgba(52,73,94,0.8)', background: 'rgba(52,73,94,0.08)', label: 'rgba(52,73,94,0.9)' },
-  'K-24': { border: 'rgba(22,160,133,0.8)', background: 'rgba(22,160,133,0.08)', label: 'rgba(22,160,133,0.9)' },
-  'K-30': { border: 'rgba(243,156,18,0.8)', background: 'rgba(243,156,18,0.08)', label: 'rgba(243,156,18,0.9)' },
-  'K-34': { border: 'rgba(142,68,173,0.8)', background: 'rgba(142,68,173,0.08)', label: 'rgba(142,68,173,0.9)' },
-  'K-51': { border: 'rgba(52,152,219,0.8)', background: 'rgba(52,152,219,0.08)', label: 'rgba(52,152,219,0.9)' },
-  'K-53': { border: 'rgba(241,90,36,0.8)', background: 'rgba(241,90,36,0.08)', label: 'rgba(241,90,36,0.9)' },
-  'K-55': { border: 'rgba(192,57,43,0.8)', background: 'rgba(192,57,43,0.08)', label: 'rgba(192,57,43,0.9)' },
-  'K-58': { border: 'rgba(127,140,141,0.8)', background: 'rgba(127,140,141,0.08)', label: 'rgba(127,140,141,0.9)' },
-  'K-59': { border: 'rgba(211,84,0,0.8)', background: 'rgba(211,84,0,0.08)', label: 'rgba(211,84,0,0.9)' },
-  'K-60': { border: 'rgba(41,128,185,0.8)', background: 'rgba(41,128,185,0.08)', label: 'rgba(41,128,185,0.9)' },
-  'K-61': { border: 'rgba(142,68,173,0.8)', background: 'rgba(142,68,173,0.08)', label: 'rgba(142,68,173,0.9)' },
-};
-const FALLBACK_COLOR = {
-  border: 'rgba(149,165,166,0.8)',
-  background: 'rgba(149,165,166,0.08)',
-  label: 'rgba(149,165,166,0.9)',
-};
 
 interface HighlightRecord {
+  ruleId: string;
   element: HTMLElement;
   box: HTMLDivElement;
 }
 
 let trackedHighlights: HighlightRecord[] = [];
 let scrollListenerAttached = false;
-
-function getRuleColor(ruleId: string): { border: string; background: string; label: string } {
-  return RULE_COLORS[ruleId] ?? FALLBACK_COLOR;
-}
+let activePulseTimeout: number | null = null;
 
 function createOverlayRoot(): HTMLDivElement {
   const root = document.createElement('div');
@@ -95,6 +66,13 @@ function repositionHighlights(): void {
   });
 }
 
+function clearPulse(box: HTMLDivElement): void {
+  box.style.transform = '';
+  box.style.boxShadow = '';
+  box.style.transition = '';
+  box.style.zIndex = '';
+}
+
 function addOverlayListeners(): void {
   if (scrollListenerAttached) {
     return;
@@ -118,6 +96,10 @@ function removeOverlayListeners(): void {
 export function removeHighlights(): void {
   document.getElementById(OVERLAY_ID)?.remove();
   trackedHighlights = [];
+  if (activePulseTimeout !== null) {
+    window.clearTimeout(activePulseTimeout);
+    activePulseTimeout = null;
+  }
   removeOverlayListeners();
 }
 
@@ -160,8 +142,8 @@ export function drawHighlights(results: RuleResult[]): void {
 
       box.appendChild(label);
       overlayRoot.appendChild(box);
-      trackedHighlights.push({ element, box });
-      positionHighlight({ element, box });
+      trackedHighlights.push({ ruleId: result.ruleId, element, box });
+      positionHighlight({ ruleId: result.ruleId, element, box });
     }
   }
 
@@ -177,4 +159,54 @@ export function setOverlayEnabled(enabled: boolean, results: RuleResult[]): void
   }
 
   removeHighlights();
+}
+
+export function focusFirstHighlight(ruleId: string): boolean {
+  repositionHighlights();
+
+  const match = trackedHighlights
+    .filter((record) => record.ruleId === ruleId && canHighlightElement(record.element))
+    .sort((left, right) => {
+      const leftRect = left.element.getBoundingClientRect();
+      const rightRect = right.element.getBoundingClientRect();
+      const leftTop = leftRect.top + window.scrollY;
+      const rightTop = rightRect.top + window.scrollY;
+
+      if (leftTop !== rightTop) {
+        return leftTop - rightTop;
+      }
+
+      return leftRect.left - rightRect.left;
+    })[0];
+
+  if (match === undefined) {
+    return false;
+  }
+
+  match.element.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center',
+    inline: 'nearest'
+  });
+
+  positionHighlight(match);
+
+  if (activePulseTimeout !== null) {
+    window.clearTimeout(activePulseTimeout);
+    activePulseTimeout = null;
+  }
+
+  trackedHighlights.forEach((record) => clearPulse(record.box));
+
+  match.box.style.transition = 'transform 180ms ease, box-shadow 180ms ease';
+  match.box.style.transform = 'scale(1.12)';
+  match.box.style.boxShadow = '0 0 0 8px rgba(15, 23, 42, 0.18)';
+  match.box.style.zIndex = '1';
+
+  activePulseTimeout = window.setTimeout(() => {
+    clearPulse(match.box);
+    activePulseTimeout = null;
+  }, 1200);
+
+  return true;
 }
