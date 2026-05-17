@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import { AudienceMode } from '../types';
-import { PopupCard, PopupCardBody, PopupMutedPanel, PopupScreenHeader } from './PopupPrimitives';
+import { PopupCard, PopupCardBody, PopupScreenHeader } from './PopupPrimitives';
 
 interface PopupSettingsScreenProps {
   audienceMode: AudienceMode;

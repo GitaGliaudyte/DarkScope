@@ -62,10 +62,6 @@ export function PopupResultsCard({ className, ...props }: PopupCardProps) {
   return <Card className={cn('overflow-visible rounded-none border-slate-200 bg-white shadow-sm', className)} {...props} />;
 }
 
-export function PopupModeSwitchCard({ className, ...props }: PopupCardProps) {
-  return <Card className={cn('rounded-none border-slate-200 bg-white shadow-sm', className)} {...props} />;
-}
-
 export function PopupCardHeaderSection({ className, ...props }: PopupCardHeaderProps) {
   return <CardHeader className={cn('gap-4 pb-4', className)} {...props} />;
 }
@@ -88,10 +84,6 @@ export function PopupHomeCardBody({ className, ...props }: PopupCardBodyProps) {
 
 export function PopupResultsCardBody({ className, ...props }: PopupCardBodyProps) {
   return <CardContent className={cn('space-y-5 overflow-visible p-5', className)} {...props} />;
-}
-
-export function PopupModeSwitchBody({ className, ...props }: PopupCardBodyProps) {
-  return <CardContent className={cn('flex items-center justify-between gap-4 p-4', className)} {...props} />;
 }
 
 export function PopupScreenHeader({ title, description, onBack, backTone = 'inline', action }: PopupScreenHeaderProps) {
@@ -131,10 +123,6 @@ export function PopupCompactSummaryPanel({ className, ...props }: PopupPanelProp
 
 export function PopupMutedPanel({ className, ...props }: PopupPanelProps) {
   return <div className={cn('rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600', className)} {...props} />;
-}
-
-export function PopupDetailPanel({ className, ...props }: PopupPanelProps) {
-  return <div className={cn('rounded-lg border border-slate-200 bg-white p-4', className)} {...props} />;
 }
 
 export function PopupStatusMessage({ tone, className, ...props }: PopupStatusMessageProps) {

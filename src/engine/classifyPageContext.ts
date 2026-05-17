@@ -542,10 +542,6 @@ function extractPageTypeFromResponse(value: string): PageType | null {
   return null;
 }
 
-function previewText(value: string): string {
-  return value.replace(/\s+/g, ' ').trim().slice(0, 200);
-}
-
 function toErrorSignal(error: unknown): string {
   if (!(error instanceof Error)) {
     return 'llm_error:unknown_error';
@@ -665,8 +661,6 @@ export async function classifyPageContext(): Promise<PageContext> {
     }
 
     return result;
-  // }
-  //   return classifyWithLLM();
   }
 
   return toPageContextFromWinner(winner, isConflicted);

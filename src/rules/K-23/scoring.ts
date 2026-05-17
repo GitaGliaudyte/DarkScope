@@ -1,5 +1,4 @@
 import { Confidence, RuleResult } from '../../engine/types';
-import { WEIGHT_THRESHOLDS } from './constants';
 
 type Impact = RuleResult['impact'];
 

@@ -75,10 +75,6 @@ interface GeminiGenerateContentResponse {
 const GEMINI_MODEL = 'gemini-2.5-flash';
 const LINK_CHECK_TIMEOUT_MS = 3000;
 
-function summarizePrompt(prompt: string): string {
-  return prompt.replace(/\s+/g, ' ').trim().slice(0, 200);
-}
-
 function shouldRequestJsonResponse(prompt: string): boolean {
   const normalized = prompt.toLowerCase();
 
@@ -101,10 +97,6 @@ function isRuntimeMessage(message: unknown): message is LlmRequestMessage | Link
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'unknown_error';
-}
-
-function previewText(value: string, maxLength = 240): string {
-  return value.replace(/\s+/g, ' ').trim().slice(0, maxLength);
 }
 
 async function fetchUrlWithTimeout(url: string, method: 'HEAD' | 'GET'): Promise<LinkCheckResponse> {
