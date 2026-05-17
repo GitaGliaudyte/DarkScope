@@ -1,5 +1,6 @@
 import { Eye, EyeOff, Info, Menu, RefreshCcw } from 'lucide-react';
 import { RuleResult } from '@/engine/types';
+import { buildPrincipleScoreRows, computeImpactScore, getMostAffectedPrinciple } from '../principleScores';
 import { AudienceMode } from '../types';
 import { PopupActionButton, PopupCompactSummaryPanel, PopupResultsCard, PopupResultsCardBody, PopupSummaryPanel } from './PopupPrimitives';
 
@@ -12,6 +13,14 @@ interface PopupResultsProps {
   onStartOver: () => void;
 }
 
+const USER_RISK_LEVELS = [
+  { maxImpactScore: 20, label: 'LOW', textClassName: 'text-emerald-600' },
+  { maxImpactScore: 40, label: 'MODERATE', textClassName: 'text-lime-600' },
+  { maxImpactScore: 60, label: 'ELEVATED', textClassName: 'text-amber-500' },
+  { maxImpactScore: 80, label: 'HIGH', textClassName: 'text-orange-500' },
+  { maxImpactScore: 100, label: 'SEVERE', textClassName: 'text-red-600' }
+] as const;
+
 export function PopupResults({
   audienceMode,
   overlayEnabled,
@@ -23,6 +32,10 @@ export function PopupResults({
   const detectedCount = results.filter((result) => result.detected).length;
   const isDesignerMode = audienceMode === 'designer';
   const hasDetectedIssues = detectedCount > 0;
+  const principleScores = buildPrincipleScoreRows(results);
+  const impactScore = computeImpactScore(principleScores);
+  const mostAffectedPrinciple = getMostAffectedPrinciple(principleScores);
+  const userRiskLevel = getUserRiskLevel(impactScore);
 
   return (
     <PopupResultsCard>
@@ -50,16 +63,16 @@ export function PopupResults({
                     </div>
                   </div>
                 </div>
-                <p className="mt-2 text-[1.75rem] font-semibold leading-none text-slate-950">67%</p>
+                <p className={`mt-2 text-[1.75rem] font-semibold leading-none ${userRiskLevel.textClassName}`}>{impactScore}%</p>
               </div>
             </div>
-            {hasDetectedIssues ? (
+            {hasDetectedIssues && mostAffectedPrinciple ? (
               <div className="border-t border-slate-200 px-4 py-4 text-center text-sm text-slate-800">
                 <span>
                   Most affected principle:
                   <br />
                 </span>
-                <span className="font-semibold">Ethical intent</span>
+                <span className="font-semibold">{mostAffectedPrinciple.label}</span>
               </div>
             ) : null}
           </PopupSummaryPanel>
@@ -72,7 +85,10 @@ export function PopupResults({
               </div>
               <div className="border-l border-slate-200 px-4 py-5 text-center">
                 <p className="text-[12px] font-medium tracking-[0.02em] text-slate-600">Risk Level</p>
-                <p className="mt-2 text-[1.75rem] font-semibold leading-none text-emerald-700">LOW</p>
+                <p className={`mt-2 flex items-baseline justify-center gap-1 font-semibold leading-none ${userRiskLevel.textClassName}`}>
+                  <span className="text-[1.75rem]">{userRiskLevel.label}</span>
+                  <span className="text-[0.875rem] font-medium">({impactScore}%)</span>
+                </p>
               </div>
             </div>
           </PopupCompactSummaryPanel>
@@ -95,4 +111,8 @@ export function PopupResults({
       </PopupResultsCardBody>
     </PopupResultsCard>
   );
+}
+
+function getUserRiskLevel(impactScore: number): (typeof USER_RISK_LEVELS)[number] {
+  return USER_RISK_LEVELS.find((level) => impactScore <= level.maxImpactScore) ?? USER_RISK_LEVELS[USER_RISK_LEVELS.length - 1];
 }

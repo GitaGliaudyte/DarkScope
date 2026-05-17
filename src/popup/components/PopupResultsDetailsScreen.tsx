@@ -1,5 +1,6 @@
-import { ShieldAlert, ShieldCheck, TriangleAlert } from 'lucide-react';
+import { BarChart3, ShieldAlert, ShieldCheck, TriangleAlert } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RuleResult } from '@/engine/types';
 import { AudienceMode } from '../types';
@@ -9,6 +10,7 @@ interface PopupResultsDetailsScreenProps {
   audienceMode: AudienceMode;
   results: RuleResult[];
   onBack: () => void;
+  onOpenPrincipleScores: () => void;
 }
 
 function statusBadge(result: RuleResult): 'default' | 'secondary' | 'destructive' | 'outline' {
@@ -30,7 +32,8 @@ function statusBadge(result: RuleResult): 'default' | 'secondary' | 'destructive
 export function PopupResultsDetailsScreen({
   audienceMode,
   results,
-  onBack
+  onBack,
+  onOpenPrincipleScores
 }: PopupResultsDetailsScreenProps) {
   const sortedResults = [...results].sort((left, right) => Number(right.detected) - Number(left.detected));
   const isUserAudience = audienceMode === 'user';
@@ -42,6 +45,22 @@ export function PopupResultsDetailsScreen({
         description="Rule-by-rule results for this scan."
         onBack={onBack}
         backTone="raised"
+        action={
+          <div className="flex items-center gap-2 text-sm text-slate-600">
+            <span>See impact by principle</span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+              aria-label="Open principle scores"
+              title="Open principle scores"
+              onClick={onOpenPrincipleScores}
+            >
+              <BarChart3 className="size-4" />
+            </Button>
+          </div>
+        }
       />
 
       <PopupResultsCardBody>

@@ -33,14 +33,11 @@ export function PopupHome({
           <PopupBrand
             subtitle={
               isUserAudience
-                ? 'Scan the current page for dark-pattern signals before you act on it.'
-                : 'Review the active page with a cleaner analyst-facing dark-pattern scan.'
+                ? 'Scan the current page for deceptive-pattern signals before you act on it.'
+                : 'Review the active page with a cleaner analyst-facing deceptive-pattern scan.'
             }
           />
-          <div className="flex flex-col items-end gap-2">
-            <Badge variant="secondary" className="border border-slate-200 bg-slate-50 text-slate-700">
-              {isUserAudience ? 'USER mode' : 'DESIGNER mode'}
-            </Badge>
+          <div className="flex flex-col items-end gap-3">
             <div className="flex items-center gap-2">
               <Button variant="outline" size="icon" aria-label="Popup settings" onClick={onOpenSettings}>
                 <Cog className="size-4" />
@@ -49,6 +46,9 @@ export function PopupHome({
                 <CircleHelp className="size-4" />
               </Button>
             </div>
+            <Badge variant="secondary" className="inline-flex justify-center border border-slate-200 bg-slate-50 text-center text-slate-700">
+              {isUserAudience ? 'USER mode' : 'DESIGNER mode'}
+            </Badge>
           </div>
         </div>
       </PopupHomeCardHeader>

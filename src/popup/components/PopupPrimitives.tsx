@@ -20,6 +20,7 @@ interface PopupScreenHeaderProps {
   description: string;
   onBack: () => void;
   backTone?: PopupBackButtonProps['tone'];
+  action?: React.ReactNode;
 }
 
 interface PopupStatusMessageProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -87,18 +88,21 @@ export function PopupModeSwitchBody({ className, ...props }: PopupCardBodyProps)
   return <CardContent className={cn('flex items-center justify-between gap-4 p-4', className)} {...props} />;
 }
 
-export function PopupScreenHeader({ title, description, onBack, backTone = 'inline' }: PopupScreenHeaderProps) {
+export function PopupScreenHeader({ title, description, onBack, backTone = 'inline', action }: PopupScreenHeaderProps) {
   return (
     <PopupCardHeaderSection>
-      <div className="space-y-4">
-        <PopupBackButton tone={backTone} onClick={onBack}>
-          <ArrowLeft className="size-4" />
-          Go back
-        </PopupBackButton>
-        <div className="space-y-1">
-          <CardTitle className="text-xl text-slate-950">{title}</CardTitle>
-          <CardDescription className="text-sm text-slate-600">{description}</CardDescription>
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-4">
+          <PopupBackButton tone={backTone} onClick={onBack}>
+            <ArrowLeft className="size-4" />
+            Go back
+          </PopupBackButton>
+          <div className="space-y-1">
+            <CardTitle className="text-xl text-slate-950">{title}</CardTitle>
+            <CardDescription className="text-sm text-slate-600">{description}</CardDescription>
+          </div>
         </div>
+        {action ? <div className="pt-0.5">{action}</div> : null}
       </div>
     </PopupCardHeaderSection>
   );

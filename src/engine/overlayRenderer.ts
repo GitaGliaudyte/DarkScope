@@ -57,6 +57,23 @@ function createOverlayRoot(): HTMLDivElement {
   return root;
 }
 
+function canHighlightElement(element: HTMLElement): boolean {
+  if (!element.isConnected) {
+    return false;
+  }
+
+  const style = window.getComputedStyle(element);
+  const rect = element.getBoundingClientRect();
+
+  return (
+    rect.width > 0 &&
+    rect.height > 0 &&
+    style.display !== 'none' &&
+    style.visibility !== 'hidden' &&
+    Number.parseFloat(style.opacity || '1') > 0
+  );
+}
+
 function positionHighlight(record: HighlightRecord): void {
   const rect = record.element.getBoundingClientRect();
   record.box.style.position = 'absolute';
@@ -117,7 +134,7 @@ export function drawHighlights(results: RuleResult[]): void {
     for (const selector of result.visualTarget.selectors) {
       const element = document.querySelector<HTMLElement>(selector);
 
-      if (element === null || element.offsetParent === null) {
+      if (element === null || !canHighlightElement(element)) {
         continue;
       }
 

@@ -62,9 +62,12 @@
 
   body {
     @apply m-0 bg-background text-foreground antialiased;
-    width: 380px;
-    min-height: 560px;
     font-family: ui-sans-serif, system-ui, sans-serif;
     background: rgb(248 250 252);
+  }
+
+  body[data-surface='popup'] {
+    width: 500px;
+    min-height: 560px;
   }
 }
