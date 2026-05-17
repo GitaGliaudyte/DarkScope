@@ -10,7 +10,7 @@ import { PrincipleScoreMap } from './types';
  * Computes principle violation scores based on rule detection results.
  *
  * For each principle (P1-P7), calculates:
- * - V: Sum of detected violations weighted by strength and question weight
+ * - V: Sum of detected violations weighted by strength, question weight, and rule probability
  * - Vmax: Theoretical maximum (sum of s*w for all associated questions)
  * - VmaxPrime: Corrected maximum (sum of s*w excluding not_applicable questions)
  * - score: Percentage (0-100) or null if no applicable questions
@@ -82,7 +82,7 @@ export function computePrincipleScores(
 
       // Only count non-not_applicable questions
       if (a !== 'not_applicable') {
-        V += weightedValue * (a === 1 ? 1 : 0);
+        V += weightedValue * a;
         VmaxPrime += weightedValue;
       }
 
@@ -126,16 +126,16 @@ export function computePrincipleScores(
 /**
  * Determines the answer value for a question based on its rule result.
  *
- * - 1 if the rule detected the dark pattern
+ * - probability (0-1) if the rule detected the dark pattern
  * - 0 if the rule did not detect it
  * - 'not_applicable' if the rule did not run or is not applicable
  *
  * @param result - The rule result, or undefined if no result exists
- * @returns The answer value: 1, 0, or 'not_applicable'
+ * @returns The answer value: probability, 0, or 'not_applicable'
  */
 function determineAnswerValue(
   result: RuleResult | undefined
-): 1 | 0 | 'not_applicable' {
+): number | 'not_applicable' {
   if (!result) {
     return 'not_applicable';
   }
@@ -144,5 +144,9 @@ function determineAnswerValue(
     return 'not_applicable';
   }
 
-  return result.detected ? 1 : 0;
+  if (!result.detected) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(1, result.probability));
 }
