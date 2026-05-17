@@ -3,6 +3,7 @@ import { getOrderedPrincipleViolations, getRuleDisplayName } from '../rules/kQue
 import { LlmProxyRequest, LlmProxyResponse, RuleResult } from './types';
 
 type ExplainerAudienceMode = 'user' | 'designer';
+const EXPLAINER_BATCH_SIZE = 6;
 
 interface ExplanationItemPayload {
   ruleId?: string;
@@ -16,6 +17,74 @@ interface ExplanationResponsePayload {
 
 function stripMarkdownFences(value: string): string {
   return value.replace(/```json|```/gi, '').trim();
+}
+
+function extractJsonObject(value: string): string | null {
+  const normalized = stripMarkdownFences(value);
+  const start = normalized.indexOf('{');
+
+  if (start === -1) {
+    return null;
+  }
+
+  let depth = 0;
+  let inString = false;
+  let escaping = false;
+
+  for (let index = start; index < normalized.length; index += 1) {
+    const character = normalized[index];
+
+    if (escaping) {
+      escaping = false;
+      continue;
+    }
+
+    if (character === '\\') {
+      escaping = true;
+      continue;
+    }
+
+    if (character === '"') {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) {
+      continue;
+    }
+
+    if (character === '{') {
+      depth += 1;
+      continue;
+    }
+
+    if (character === '}') {
+      depth -= 1;
+
+      if (depth === 0) {
+        return normalized.slice(start, index + 1);
+      }
+    }
+  }
+
+  return null;
+}
+
+function repairJsonLikeResponse(value: string): string {
+  return value
+    .replace(/^[^{[]*/, '')
+    .replace(/([{,]\s*)([A-Za-z_][A-Za-z0-9_]*)(\s*:)/g, '$1"$2"$3')
+    .replace(/,\s*([}\]])/g, '$1');
+}
+
+function chunkResults(results: RuleResult[], size: number): RuleResult[][] {
+  const chunks: RuleResult[][] = [];
+
+  for (let index = 0; index < results.length; index += size) {
+    chunks.push(results.slice(index, index + size));
+  }
+
+  return chunks;
 }
 
 function requestLlm(prompt: string, responseSchema: Record<string, unknown>): Promise<string> {
@@ -135,6 +204,22 @@ function isValidExplanationItem(value: ExplanationItemPayload): value is Require
   );
 }
 
+function parseExplanationResponse(raw: string): ExplanationResponsePayload {
+  const candidate = extractJsonObject(raw) ?? stripMarkdownFences(raw);
+  const parseCandidates = Array.from(new Set([candidate, repairJsonLikeResponse(candidate)]));
+  let lastError: Error | null = null;
+
+  for (const parseCandidate of parseCandidates) {
+    try {
+      return JSON.parse(parseCandidate) as ExplanationResponsePayload;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error('json_parse_error');
+    }
+  }
+
+  throw lastError ?? new Error('json_parse_error');
+}
+
 function buildFallbackCopy(errorMessage: string): Pick<RuleResult, 'explanation' | 'recommendation'> {
   if (errorMessage === 'no_api_key') {
     return {
@@ -148,6 +233,13 @@ function buildFallbackCopy(errorMessage: string): Pick<RuleResult, 'explanation'
     return {
       explanation: 'Explanation unavailable because the LLM returned an empty response for this analysis run.',
       recommendation: 'Suggestion unavailable because the LLM returned an empty response. Retry the scan after reloading the extension.'
+    };
+  }
+
+  if (/json|unterminated|string|unexpected end|expected/i.test(errorMessage)) {
+    return {
+      explanation: 'Explanation unavailable because the LLM returned an invalid response for this analysis run.',
+      recommendation: 'Suggestion unavailable because the LLM returned an invalid response. Retry the scan after reloading the extension.'
     };
   }
 
@@ -171,6 +263,16 @@ function applyFallbackSummaries(results: RuleResult[], fallback: Pick<RuleResult
   });
 }
 
+async function enrichDetectedBatch(
+  detectedResults: RuleResult[],
+  audienceMode: ExplainerAudienceMode
+): Promise<Map<string, Required<ExplanationItemPayload>>> {
+  const raw = await requestLlm(buildPrompt(detectedResults, audienceMode), buildResponseSchema());
+  const parsed = parseExplanationResponse(raw);
+  const items = Array.isArray(parsed.items) ? parsed.items.filter(isValidExplanationItem) : [];
+  return new Map(items.map((item) => [item.ruleId, item]));
+}
+
 export async function enrichWithLLM(results: RuleResult[], audienceMode: ExplainerAudienceMode): Promise<RuleResult[]> {
   const detectedResults = results.filter((result) => result.detected);
 
@@ -179,10 +281,10 @@ export async function enrichWithLLM(results: RuleResult[], audienceMode: Explain
   }
 
   try {
-    const raw = await requestLlm(buildPrompt(detectedResults, audienceMode), buildResponseSchema());
-    const parsed = JSON.parse(stripMarkdownFences(raw)) as ExplanationResponsePayload;
-    const items = Array.isArray(parsed.items) ? parsed.items.filter(isValidExplanationItem) : [];
-    const itemsByRuleId = new Map(items.map((item) => [item.ruleId, item]));
+    const batchMaps = await Promise.all(
+      chunkResults(detectedResults, EXPLAINER_BATCH_SIZE).map((batch) => enrichDetectedBatch(batch, audienceMode))
+    );
+    const itemsByRuleId = new Map(batchMaps.flatMap((batchMap) => Array.from(batchMap.entries())));
     const missingItemFallback = {
       explanation: 'Explanation unavailable because the LLM response did not include this detected pattern.',
       recommendation: 'Suggestion unavailable because the LLM response did not include this detected pattern.'
