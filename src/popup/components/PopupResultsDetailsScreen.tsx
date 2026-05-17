@@ -140,11 +140,10 @@ export function PopupResultsDetailsScreen({
 
                     {isOpen ? (
                       <div className="space-y-2 px-4 pb-4 text-sm leading-5 text-slate-800">
-                        {isDesignerAudience && violations.length > 0 ? (
-                          <div className="border-t border-slate-400/60 pt-2 text-[0.92rem] text-slate-600">
-                            Violates: {violations.join(', ')}
-                          </div>
-                        ) : null}
+                        <div className="border-t border-slate-400/60 pt-2 text-[0.92rem] text-slate-600">
+                          Confidence: {Math.round(result.probability * 100)}% | Violation:{' '}
+                          {violations.length > 0 ? violations.join(', ') : 'None listed'}
+                        </div>
                         <p>
                           <span className="font-medium">Explanation:</span> {getExplanationText(result)}
                         </p>
