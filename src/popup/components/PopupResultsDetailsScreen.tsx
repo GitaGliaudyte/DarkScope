@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
-import { ArrowLeft, BarChart3, ChevronDown } from 'lucide-react';
+import { CSSProperties, useEffect, useState } from 'react';
+import { ArrowLeft, BarChart3, ChevronDown, LocateFixed } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { getRuleColor } from '@/engine/ruleColors';
 import { RuleResult } from '@/engine/types';
-import { getOrderedPrincipleViolations, getRuleDisplayName } from '@/rules/kQuestions';
+import { getKQuestion, getOrderedPrincipleViolations } from '@/rules/kQuestions';
 import { AudienceMode } from '../types';
 import { PopupBackButton, PopupResultsCard, PopupResultsCardBody } from './PopupPrimitives';
 
@@ -12,6 +12,7 @@ interface PopupResultsDetailsScreenProps {
   results: RuleResult[];
   onBack: () => void;
   onOpenPrincipleScores: () => void;
+  onFocusIssue: (ruleId: string) => void;
 }
 
 function getExplanationText(result: RuleResult): string {
@@ -26,11 +27,24 @@ function getRecommendationText(result: RuleResult): string {
     : 'Suggestion unavailable for this detected pattern.';
 }
 
+function getCardStyles(ruleId: string): {
+  ruleId: CSSProperties;
+} {
+  const color = getRuleColor(ruleId);
+
+  return {
+    ruleId: {
+      color: color.label,
+    },
+  };
+}
+
 export function PopupResultsDetailsScreen({
   audienceMode,
   results,
   onBack,
-  onOpenPrincipleScores
+  onOpenPrincipleScores,
+  onFocusIssue
 }: PopupResultsDetailsScreenProps) {
   const detectedResults = results.filter((result) => result.detected);
   const [openRuleId, setOpenRuleId] = useState<string | null>(detectedResults[0]?.ruleId ?? null);
@@ -76,22 +90,53 @@ export function PopupResultsDetailsScreen({
             No detected issues to explain for this scan.
           </div>
         ) : (
-          <ScrollArea className="h-[340px] pr-3">
-            <div className="space-y-3">
+          <div className="h-[340px] overflow-y-auto">
+            <div className="space-y-3 pr-3">
               {detectedResults.map((result) => {
                 const isOpen = openRuleId === result.ruleId;
                 const violations = getOrderedPrincipleViolations(result.ruleId);
+                const cardStyles = getCardStyles(result.ruleId);
+                const question = getKQuestion(result.ruleId);
+                const canFocusIssue = result.visualTarget.type !== 'none' && result.visualTarget.selectors.length > 0;
 
                 return (
                   <article key={result.ruleId} className="overflow-hidden rounded-xl bg-slate-100">
-                    <button
-                      type="button"
-                      className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
-                      onClick={() => setOpenRuleId(isOpen ? null : result.ruleId)}
-                    >
-                      <h3 className="text-[1.05rem] font-semibold leading-5 text-slate-950">{getRuleDisplayName(result.ruleId)}</h3>
-                      <ChevronDown className={`size-5 shrink-0 text-slate-700 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                    </button>
+                    <div className="flex items-center gap-2 px-4 py-3">
+                      <button
+                        type="button"
+                        className="min-w-0 flex-1 text-left"
+                        onClick={() => setOpenRuleId(isOpen ? null : result.ruleId)}
+                      >
+                        <h3 className="min-w-0 flex-1 text-[1.05rem] font-semibold leading-5 text-slate-950">
+                          <span style={cardStyles.ruleId}>{result.ruleId}</span>
+                          {question ? ` ${question.displayLabel}` : ''}
+                        </h3>
+                      </button>
+                      {canFocusIssue ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="size-8 shrink-0 rounded-md text-slate-700 hover:bg-slate-200 hover:text-slate-950"
+                          aria-label={`Go to first ${result.ruleId} occurrence`}
+                          title={`Go to first ${result.ruleId} occurrence`}
+                          onClick={() => onFocusIssue(result.ruleId)}
+                        >
+                          <LocateFixed className="size-4" />
+                        </Button>
+                      ) : null}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 shrink-0 rounded-md text-slate-700 hover:bg-slate-200 hover:text-slate-950"
+                        aria-label={isOpen ? `Collapse ${result.ruleId}` : `Expand ${result.ruleId}`}
+                        title={isOpen ? `Collapse ${result.ruleId}` : `Expand ${result.ruleId}`}
+                        onClick={() => setOpenRuleId(isOpen ? null : result.ruleId)}
+                      >
+                        <ChevronDown className={`size-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                      </Button>
+                    </div>
 
                     {isOpen ? (
                       <div className="space-y-2 px-4 pb-4 text-sm leading-5 text-slate-800">
@@ -116,7 +161,7 @@ export function PopupResultsDetailsScreen({
                 );
               })}
             </div>
-          </ScrollArea>
+          </div>
         )}
       </PopupResultsCardBody>
     </PopupResultsCard>
