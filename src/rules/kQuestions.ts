@@ -76,6 +76,13 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product', 'registration', 'account_settings', 'cart']
   },
   {
+    id: 'K-26',
+    label: 'Does the chatbot have at least one of the following elements: avatar, uses emojis, emotional words?',
+    weight: 2,
+    principles: { P1: 1, P3: 0.5 },
+    relevantContexts: ['product', 'registration', 'account_settings', 'cart']
+  },
+  {
     id: 'K-30',
     label: 'Is there no filtering or sorting functionality?',
     weight: 2,
