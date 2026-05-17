@@ -1,4 +1,5 @@
 import { defaultPageClassifier } from '../../engine/pageClassifier';
+import { GEMINI_SECRETS_FILE_PATH } from '../../config/llm';
 import { AnalysisContext, LlmProxySuccessResponse, RuleDefinition, RuleResult } from '../../engine/types';
 import { buildVisualTarget, createRuleResult } from '../../rules-utilities/resultUtils';
 import { MIN_REQUIRED_SAMPLES, RULE_ID } from './constants';
@@ -77,7 +78,7 @@ export async function evaluate(_context: AnalysisContext): Promise<RuleResult> {
       if (message === 'no_api_key') {
         return createNotApplicableResultWithReason(
           'Skipped because no Gemini API key is configured for LLM-backed rules.',
-          'Save a Gemini API key in the extension popup and run the scan again.'
+          `Add your Gemini API key to ${GEMINI_SECRETS_FILE_PATH} and run the scan again.`
         );
       }
 
@@ -197,7 +198,7 @@ export async function evaluate(_context: AnalysisContext): Promise<RuleResult> {
           ? 'Skipped because no Gemini API key is configured for LLM-backed rules.'
           : 'Skipped because the LLM returned an empty response.',
         error.message === 'no_api_key'
-          ? 'Save a Gemini API key in the extension popup and run the scan again.'
+          ? `Add your Gemini API key to ${GEMINI_SECRETS_FILE_PATH} and run the scan again.`
           : 'Check the background LLM response handling and retry.'
       );
     }

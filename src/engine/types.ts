@@ -76,6 +76,7 @@ export interface RuleDefinition {
 export interface KQuestion {
   id: string;
   label: string;
+  displayLabel: string;
   weight: QuestionWeight;
   principles: Partial<Record<PrincipleId, ViolationStrength>>;
   relevantContexts: PageType[];

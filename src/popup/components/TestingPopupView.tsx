@@ -1,16 +1,13 @@
 import { RuleResult } from '@/engine/types';
+import { GEMINI_SECRETS_FILE_PATH } from '@/config/llm';
 import { PopupStatusTone } from '../types';
 
 interface TestingPopupViewProps {
-  apiKey: string;
-  isSavingKey: boolean;
   isScanning: boolean;
   overlayEnabled: boolean;
   results: RuleResult[];
   statusMessage: string;
   statusTone: PopupStatusTone;
-  onApiKeyChange: (value: string) => void;
-  onSaveApiKey: () => void;
   onScan: () => void;
   onToggleOverlay: () => void;
 }
@@ -44,15 +41,11 @@ function resultBorderColor(result: RuleResult): string {
 }
 
 export function TestingPopupView({
-  apiKey,
-  isSavingKey,
   isScanning,
   overlayEnabled,
   results,
   statusMessage,
   statusTone,
-  onApiKeyChange,
-  onSaveApiKey,
   onScan,
   onToggleOverlay
 }: TestingPopupViewProps) {
@@ -91,42 +84,10 @@ export function TestingPopupView({
           background: '#ffffff'
         }}
       >
-        <label htmlFor="gemini-key" style={{ fontSize: '12px', fontWeight: 600 }}>
-          Gemini API key
-        </label>
-        <input
-          id="gemini-key"
-          type="password"
-          value={apiKey}
-          onChange={(event) => onApiKeyChange(event.target.value)}
-          placeholder="Optional for LLM classification"
-          style={{
-            width: '100%',
-            padding: '8px 10px',
-            border: '1px solid #cbd5e1',
-            borderRadius: '6px',
-            boxSizing: 'border-box',
-            fontSize: '12px'
-          }}
-        />
-        <button
-          type="button"
-          onClick={onSaveApiKey}
-          disabled={isSavingKey}
-          style={{
-            padding: '8px 10px',
-            border: 'none',
-            borderRadius: '6px',
-            background: '#1d4ed8',
-            color: '#ffffff',
-            cursor: isSavingKey ? 'default' : 'pointer',
-            opacity: isSavingKey ? 0.7 : 1,
-            fontSize: '12px',
-            fontWeight: 600
-          }}
-        >
-          {isSavingKey ? 'Saving...' : 'Save API key'}
-        </button>
+        <strong style={{ fontSize: '12px' }}>Gemini API key</strong>
+        <p style={{ margin: 0, fontSize: '12px', lineHeight: 1.5, color: '#475569' }}>
+          Configure the key locally in <code>{GEMINI_SECRETS_FILE_PATH}</code>. It is no longer entered in the popup UI.
+        </p>
       </section>
 
       <section
