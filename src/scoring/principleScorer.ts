@@ -26,11 +26,6 @@ export function computePrincipleScores(
   // All possible principles
   const allPrinciples: PrincipleId[] = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7'];
 
-  console.log('[principleScorer] Starting principle score computation', {
-    resultCount: results.length,
-    questionCount: questions.length,
-  });
-
   // Create a map for quick result lookup by ruleId
   const resultMap = new Map<string, RuleResult>();
   for (const result of results) {
@@ -59,7 +54,6 @@ export function computePrincipleScores(
         VmaxPrime: 0,
         score: null,
       };
-      console.log(`[principleScorer] ${principleId}: no associated questions`);
       continue;
     }
 
@@ -86,16 +80,6 @@ export function computePrincipleScores(
         VmaxPrime += weightedValue;
       }
 
-      console.log(`[principleScorer] ${principleId} question`, {
-        questionId: question.id,
-        label: question.label,
-        strength: s,
-        weight: w,
-        weightedValue,
-        answerValue: a,
-        status: result?.status ?? 'missing',
-        detected: result?.detected ?? null,
-      });
     }
 
     // Calculate score as percentage, or null if VmaxPrime === 0
@@ -108,17 +92,7 @@ export function computePrincipleScores(
       VmaxPrime,
       score,
     };
-
-    console.log(`[principleScorer] ${principleId} totals`, {
-      questionCount: questionsForPrinciple.length,
-      V,
-      Vmax,
-      VmaxPrime,
-      score,
-    });
   }
-
-  console.log('[principleScorer] Final score map', scoreMap);
 
   return scoreMap;
 }
