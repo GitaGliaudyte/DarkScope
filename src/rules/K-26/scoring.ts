@@ -1,4 +1,4 @@
-import { Confidence, NormalizedElement } from '../../engine/types';
+import { Confidence } from '../../engine/types';
 import { AVATAR_SELECTORS, EMOJI_PATTERNS, EMOTIONAL_WORDS, EXCLUSION_SELECTORS } from './constants';
 
 export function containsEmojis(text: string): boolean {
@@ -49,7 +49,7 @@ export function hasEmotionalWords(element: HTMLElement): boolean {
   return containsEmotionalWords(text);
 }
 
-export function scoreSignals(element: NormalizedElement, liveElement: HTMLElement): number {
+export function scoreSignals(liveElement: HTMLElement): number {
   if (isExcludedContext(liveElement)) {
     return 0;
   }

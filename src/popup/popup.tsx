@@ -6,8 +6,6 @@ import { PopupResults } from '@/popup/components/PopupResults';
 import { PopupResultsDetailsScreen } from '@/popup/components/PopupResultsDetailsScreen';
 import { PopupPrincipleScoresScreen } from '@/popup/components/PopupPrincipleScoresScreen';
 import { PopupSettingsScreen } from '@/popup/components/PopupSettingsScreen';
-import { TestingPopupView } from '@/popup/components/TestingPopupView';
-import { PopupModeSwitch } from '@/popup/components/PopupModeSwitch';
 import { RuleResult } from '@/engine/types';
 import { AudienceMode, PopupScreen, PopupStatusTone, PopupSurfaceMode } from './types';
 import './styles.css';
@@ -179,13 +177,11 @@ function App(): React.JSX.Element {
   const [isScanning, setIsScanning] = useState(false);
   const [statusMessage, setStatusMessage] = useState('Ready to scan the active tab.');
   const [statusTone, setStatusTone] = useState<PopupStatusTone>('neutral');
-  const [surfaceMode, setSurfaceMode] = useState<PopupSurfaceMode>('testing');
   const [audienceMode, setAudienceMode] = useState<AudienceMode>('user');
   const [popupScreen, setPopupScreen] = useState<PopupScreen>('home');
 
   useEffect(() => {
     void loadPopupSettings().then((settings) => {
-      setSurfaceMode(settings.surfaceMode);
       setAudienceMode(settings.audienceMode);
     });
   }, []);
@@ -253,15 +249,6 @@ function App(): React.JSX.Element {
     }
   };
 
-  const handleSurfaceModeChange = (nextMode: PopupSurfaceMode): void => {
-    setSurfaceMode(nextMode);
-    void savePopupSetting('popup_surface_mode', nextMode);
-
-    if (nextMode === 'user' && results.length > 0) {
-      setPopupScreen('results');
-    }
-  };
-
   const handleAudienceModeChange = (nextMode: AudienceMode): void => {
     setAudienceMode(nextMode);
     void savePopupSetting('popup_audience_mode', nextMode);
@@ -280,87 +267,54 @@ function App(): React.JSX.Element {
   };
 
   return (
-    <main
-      className={surfaceMode === 'user' ? 'min-h-full p-4' : undefined}
-      style={
-        surfaceMode === 'testing'
-          ? {
-              width: '500px',
-              margin: 0,
-              padding: '14px',
-              boxSizing: 'border-box',
-              fontFamily: 'system-ui, sans-serif',
-              background: '#f8fafc',
-              color: '#0f172a'
-            }
-          : undefined
-      }
-    >
-      {surfaceMode === 'testing' ? (
-        <section style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <PopupModeSwitch mode={surfaceMode} onModeChange={handleSurfaceModeChange} />
-          <TestingPopupView
-            isScanning={isScanning}
-            overlayEnabled={overlayEnabled}
-            results={results}
-            statusMessage={statusMessage}
-            statusTone={statusTone}
-            onScan={() => void handleScan()}
-            onToggleOverlay={() => void handleSetOverlayEnabled(!overlayEnabled)}
-          />
-        </section>
+    <section className="space-y-4">
+      {popupScreen === 'results' && results.length > 0 ? (
+        <PopupResults
+          audienceMode={audienceMode}
+          overlayEnabled={overlayEnabled}
+          results={results}
+          onLearnMore={() => setPopupScreen('results_details')}
+          onToggleOverlay={() =>
+            void handleSetOverlayEnabled(
+              !overlayEnabled,
+              overlayEnabled ? 'Overlay hidden.' : 'Overlay shown.'
+            )
+          }
+          onStartOver={handleStartOver}
+        />
+      ) : popupScreen === 'results_details' && results.length > 0 ? (
+        <PopupResultsDetailsScreen
+          audienceMode={audienceMode}
+          results={results}
+          onBack={() => setPopupScreen('results')}
+          onOpenPrincipleScores={() => setPopupScreen('principle_scores')}
+          onFocusIssue={(ruleId) => void handleFocusIssue(ruleId)}
+        />
+      ) : popupScreen === 'principle_scores' && results.length > 0 ? (
+        <PopupPrincipleScoresScreen
+          results={results}
+          onBack={() => setPopupScreen('results_details')}
+        />
+      ) : popupScreen === 'settings' ? (
+        <PopupSettingsScreen
+          audienceMode={audienceMode}
+          onAudienceModeChange={handleAudienceModeChange}
+          onBack={() => setPopupScreen('home')}
+        />
+      ) : popupScreen === 'info' ? (
+        <PopupInfoScreen onBack={() => setPopupScreen('home')} />
       ) : (
-        <section className="space-y-4">
-          <PopupModeSwitch mode={surfaceMode} onModeChange={handleSurfaceModeChange} />
-          {popupScreen === 'results' && results.length > 0 ? (
-            <PopupResults
-              audienceMode={audienceMode}
-              overlayEnabled={overlayEnabled}
-              results={results}
-              onLearnMore={() => setPopupScreen('results_details')}
-              onToggleOverlay={() =>
-                void handleSetOverlayEnabled(
-                  !overlayEnabled,
-                  overlayEnabled ? 'Overlay hidden.' : 'Overlay shown.'
-                )
-              }
-              onStartOver={handleStartOver}
-            />
-          ) : popupScreen === 'results_details' && results.length > 0 ? (
-            <PopupResultsDetailsScreen
-              audienceMode={audienceMode}
-              results={results}
-              onBack={() => setPopupScreen('results')}
-              onOpenPrincipleScores={() => setPopupScreen('principle_scores')}
-              onFocusIssue={(ruleId) => void handleFocusIssue(ruleId)}
-            />
-          ) : popupScreen === 'principle_scores' && results.length > 0 ? (
-            <PopupPrincipleScoresScreen
-              results={results}
-              onBack={() => setPopupScreen('results_details')}
-            />
-          ) : popupScreen === 'settings' ? (
-            <PopupSettingsScreen
-              audienceMode={audienceMode}
-              onAudienceModeChange={handleAudienceModeChange}
-              onBack={() => setPopupScreen('home')}
-            />
-          ) : popupScreen === 'info' ? (
-            <PopupInfoScreen onBack={() => setPopupScreen('home')} />
-          ) : (
-            <PopupHome
-              audienceMode={audienceMode}
-              isScanning={isScanning}
-              statusMessage={statusMessage}
-              statusTone={statusTone}
-              onOpenSettings={() => setPopupScreen('settings')}
-              onOpenInfo={() => setPopupScreen('info')}
-              onRunAnalysis={() => void handleScan()}
-            />
-          )}
-        </section>
+        <PopupHome
+          audienceMode={audienceMode}
+          isScanning={isScanning}
+          statusMessage={statusMessage}
+          statusTone={statusTone}
+          onOpenSettings={() => setPopupScreen('settings')}
+          onOpenInfo={() => setPopupScreen('info')}
+          onRunAnalysis={() => void handleScan()}
+        />
       )}
-    </main>
+    </section>
   );
 }
 

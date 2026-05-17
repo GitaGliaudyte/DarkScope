@@ -79,7 +79,7 @@ function isExtraSensitiveField(input: HTMLElement): boolean {
   return matchesAnyPattern(combined, EXTRA_SENSITIVE_FIELD_PATTERNS);
 }
 
-export function detectSignupDataIssues(context: AnalysisContext): RuleResult {
+export function detectSignupDataIssues(_context: AnalysisContext): RuleResult {
   const evidence: RuleResult['evidence'] = [];
   const selectors = new Set<string>();
 

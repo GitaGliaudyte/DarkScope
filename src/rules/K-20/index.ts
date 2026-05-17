@@ -7,7 +7,6 @@ import {
   buildReason,
   collectTopLayerCandidateElements,
   findTopLayerCandidates,
-  hasDismissMechanism,
   hasOverlappingFindings,
   measureCoverage
 } from './probing';

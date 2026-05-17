@@ -1,17 +1,12 @@
 import { Confidence, NormalizedElement } from '../../engine/types';
-import { EXCLUDED_CONTEXT, LIMITED_TIME_PATTERNS } from './constants';
+import { LIMITED_TIME_PATTERNS } from './constants';
 
 export function matchesLimitedTimePattern(text: string): boolean {
   const normalized = text.toLowerCase();
   return LIMITED_TIME_PATTERNS.some((pattern) => pattern.test(normalized));
 }
 
-function isInExcludedContext(element: HTMLElement): boolean {
-  const context = element.textContent?.toLowerCase() ?? '';
-  return EXCLUDED_CONTEXT.some((phrase) => context.includes(phrase));
-}
-
-export function scoreSignals(element: NormalizedElement, liveElement: HTMLElement): number {
+export function scoreSignals(element: NormalizedElement): number {
   const text = element.text.toLowerCase();
   let score = 0;
 
