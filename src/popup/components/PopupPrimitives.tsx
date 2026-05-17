@@ -17,7 +17,7 @@ interface PopupBackButtonProps extends ButtonProps {
 
 interface PopupScreenHeaderProps {
   title: string;
-  description: string;
+  description?: string;
   onBack: () => void;
   backTone?: PopupBackButtonProps['tone'];
   action?: React.ReactNode;
@@ -99,7 +99,9 @@ export function PopupScreenHeader({ title, description, onBack, backTone = 'inli
           </PopupBackButton>
           <div className="space-y-1">
             <CardTitle className="text-xl text-slate-950">{title}</CardTitle>
-            <CardDescription className="text-sm text-slate-600">{description}</CardDescription>
+            {description ? (
+              <CardDescription className="text-sm text-slate-600">{description}</CardDescription>
+            ) : null}
           </div>
         </div>
         {action ? <div className="pt-0.5">{action}</div> : null}
