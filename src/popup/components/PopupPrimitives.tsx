@@ -42,22 +42,22 @@ function statusToneClassName(tone: PopupStatusTone): string {
 export function PopupCard({ className, ...props }: PopupCardProps) {
   return (
     <Card
-      className={cn('overflow-hidden border-slate-200 bg-white shadow-sm', className)}
+      className={cn('overflow-hidden rounded-none border-slate-200 bg-white shadow-sm', className)}
       {...props}
     />
   );
 }
 
 export function PopupHomeCard({ className, ...props }: PopupCardProps) {
-  return <Card className={cn('overflow-hidden border-slate-200 bg-white shadow-sm', className)} {...props} />;
+  return <Card className={cn('overflow-hidden rounded-none border-slate-200 bg-white shadow-sm', className)} {...props} />;
 }
 
 export function PopupResultsCard({ className, ...props }: PopupCardProps) {
-  return <Card className={cn('overflow-visible border-slate-200 bg-white shadow-sm', className)} {...props} />;
+  return <Card className={cn('overflow-visible rounded-none border-slate-200 bg-white shadow-sm', className)} {...props} />;
 }
 
 export function PopupModeSwitchCard({ className, ...props }: PopupCardProps) {
-  return <Card className={cn('border-slate-200 bg-white shadow-sm', className)} {...props} />;
+  return <Card className={cn('rounded-none border-slate-200 bg-white shadow-sm', className)} {...props} />;
 }
 
 export function PopupCardHeaderSection({ className, ...props }: PopupCardHeaderProps) {
