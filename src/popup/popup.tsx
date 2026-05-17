@@ -4,12 +4,15 @@ import { PopupHome } from '@/popup/components/PopupHome';
 import { PopupInfoScreen } from '@/popup/components/PopupInfoScreen';
 import { PopupResults } from '@/popup/components/PopupResults';
 import { PopupResultsDetailsScreen } from '@/popup/components/PopupResultsDetailsScreen';
+import { PopupPrincipleScoresScreen } from '@/popup/components/PopupPrincipleScoresScreen';
 import { PopupSettingsScreen } from '@/popup/components/PopupSettingsScreen';
 import { TestingPopupView } from '@/popup/components/TestingPopupView';
 import { PopupModeSwitch } from '@/popup/components/PopupModeSwitch';
 import { RuleResult } from '@/engine/types';
 import { AudienceMode, PopupScreen, PopupStatusTone, PopupSurfaceMode } from './types';
 import './styles.css';
+
+document.body.dataset.surface = 'popup';
 
 interface ScanResponse {
   results?: RuleResult[];
@@ -300,7 +303,7 @@ function App(): React.JSX.Element {
       style={
         surfaceMode === 'testing'
           ? {
-              width: '380px',
+              width: '500px',
               margin: 0,
               padding: '14px',
               boxSizing: 'border-box',
@@ -350,6 +353,12 @@ function App(): React.JSX.Element {
               audienceMode={audienceMode}
               results={results}
               onBack={() => setPopupScreen('results')}
+              onOpenPrincipleScores={() => setPopupScreen('principle_scores')}
+            />
+          ) : popupScreen === 'principle_scores' && results.length > 0 ? (
+            <PopupPrincipleScoresScreen
+              results={results}
+              onBack={() => setPopupScreen('results_details')}
             />
           ) : popupScreen === 'settings' ? (
             <PopupSettingsScreen
