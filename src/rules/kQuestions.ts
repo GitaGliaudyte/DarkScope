@@ -190,7 +190,7 @@ export const K_QUESTIONS: KQuestion[] = [
     id: 'K-61',
     label: 'Are there words next to the refusal discouraging the user from completing the action (e.g. "don\'t miss it," "you\'ll regret it," "shame," "no, I want to overpay")?',
     displayLabel: 'Confirmshaming language',
-    weight: 1,
+    weight: 2,
     principles: { P1: 0.5, P2: 0, P3: 0, P4: 0, P5: 0, P6: 1, P7: 0 },
     relevantContexts: ['product', 'cart', 'checkout', 'registration', 'account_settings']
   },
