@@ -8,8 +8,6 @@ export interface PrincipleScoreRow {
   percentage: number;
 }
 
-const PRINCIPLE_IDS: PrincipleId[] = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7'];
-
 export function buildPrincipleScoreRows(results: RuleResult[]): PrincipleScoreRow[] {
   const scoreMap = computePrincipleScores(results, K_QUESTIONS);
 

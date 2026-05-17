@@ -5,7 +5,7 @@ import { getRuleColor } from '@/engine/ruleColors';
 import { RuleResult } from '@/engine/types';
 import { getKQuestion, getOrderedPrincipleViolations } from '@/rules/kQuestions';
 import { AudienceMode } from '../types';
-import { PopupBackButton, PopupResultsCard, PopupResultsCardBody } from './PopupPrimitives';
+import { PopupBackButton, PopupDismissibleAlert, PopupResultsCard, PopupResultsCardBody } from './PopupPrimitives';
 
 interface PopupResultsDetailsScreenProps {
   audienceMode: AudienceMode;
@@ -25,6 +25,52 @@ function getRecommendationText(result: RuleResult): string {
   return result.recommendation.trim().length > 0
     ? result.recommendation.trim()
     : 'Suggestion unavailable for this detected pattern.';
+}
+
+function getLlmAlertMessage(result: RuleResult): string | null {
+  const explanation = result.explanation.trim().toLowerCase();
+
+  if (!explanation.includes('explanation unavailable because')) {
+    return null;
+  }
+
+  if (explanation.includes('no gemini api key')) {
+    return 'Gemini API key missing.';
+  }
+
+  if (explanation.includes('empty response')) {
+    return 'LLM returned an empty response.';
+  }
+
+  if (explanation.includes('invalid response')) {
+    return 'LLM returned an invalid response.';
+  }
+
+  if (explanation.includes('did not include this detected pattern')) {
+    return 'LLM response was incomplete.';
+  }
+
+  if (explanation.includes('llm request failed')) {
+    if (/quota exceeded|billing|free_tier_requests/i.test(explanation)) {
+      return 'Quota exceeded.';
+    }
+
+    if (/rate limit|retry in|429|too many requests/i.test(explanation)) {
+      return 'Rate limited.';
+    }
+
+    if (/network|fetch failed|failed to fetch|timeout|timed out|abort/i.test(explanation)) {
+      return 'Network request failed.';
+    }
+
+    if (/unauthorized|forbidden|api key|permission denied|403|401/i.test(explanation)) {
+      return 'Authentication failed.';
+    }
+
+    return 'LLM request failed.';
+  }
+
+  return 'LLM explanation unavailable.';
 }
 
 function getCardStyles(ruleId: string): {
@@ -47,8 +93,13 @@ export function PopupResultsDetailsScreen({
   onFocusIssue
 }: PopupResultsDetailsScreenProps) {
   const detectedResults = results.filter((result) => result.detected);
+  const llmAlertMessages = Array.from(
+    new Set(detectedResults.map((result) => getLlmAlertMessage(result)).filter((message): message is string => message !== null))
+  );
   const [openRuleId, setOpenRuleId] = useState<string | null>(detectedResults[0]?.ruleId ?? null);
+  const [isAlertDismissed, setIsAlertDismissed] = useState(false);
   const isDesignerAudience = audienceMode === 'designer';
+  const llmAlertKey = llmAlertMessages.join('|');
 
   useEffect(() => {
     if (detectedResults.length === 0) {
@@ -60,6 +111,10 @@ export function PopupResultsDetailsScreen({
       setOpenRuleId(detectedResults[0].ruleId);
     }
   }, [detectedResults, openRuleId]);
+
+  useEffect(() => {
+    setIsAlertDismissed(false);
+  }, [llmAlertKey]);
 
   return (
     <PopupResultsCard>
@@ -90,9 +145,26 @@ export function PopupResultsDetailsScreen({
             No detected issues to explain for this scan.
           </div>
         ) : (
-          <div className="h-[340px] overflow-y-auto">
-            <div className="space-y-3 pr-3">
+          <div className="space-y-3">
+            {llmAlertMessages.length > 0 && !isAlertDismissed ? (
+              <PopupDismissibleAlert
+                tone="error"
+                title="LLM explanations unavailable"
+                onDismiss={() => setIsAlertDismissed(true)}
+              >
+                <div className="space-y-1">
+                  {llmAlertMessages.map((message) => (
+                    <p key={message}>{message}</p>
+                  ))}
+                </div>
+              </PopupDismissibleAlert>
+            ) : null}
+
+            <div className="h-[340px] overflow-y-auto">
+              <div className="space-y-3 pr-3">
               {detectedResults.map((result) => {
+                const llmAlertMessage = getLlmAlertMessage(result);
+                const hasLlmSummary = llmAlertMessage === null;
                 const isOpen = openRuleId === result.ruleId;
                 const violations = getOrderedPrincipleViolations(result.ruleId);
                 const cardStyles = getCardStyles(result.ruleId);
@@ -144,21 +216,26 @@ export function PopupResultsDetailsScreen({
                           Confidence: {Math.round(result.probability * 100)}% | Violation:{' '}
                           {violations.length > 0 ? violations.join(', ') : 'None listed'}
                         </div>
-                        <p>
-                          <span className="font-medium">Explanation:</span> {getExplanationText(result)}
-                        </p>
-                        {isDesignerAudience ? (
-                          <div className="border-t border-slate-400/60 pt-2">
+                        {hasLlmSummary ? (
+                          <>
                             <p>
-                              <span className="font-medium">Suggestion:</span> {getRecommendationText(result)}
+                              <span className="font-medium">Explanation:</span> {getExplanationText(result)}
                             </p>
-                          </div>
+                            {isDesignerAudience ? (
+                              <div className="border-t border-slate-400/60 pt-2">
+                                <p>
+                                  <span className="font-medium">Suggestion:</span> {getRecommendationText(result)}
+                                </p>
+                              </div>
+                            ) : null}
+                          </>
                         ) : null}
                       </div>
                     ) : null}
                   </article>
                 );
               })}
+              </div>
             </div>
           </div>
         )}

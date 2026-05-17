@@ -42,7 +42,7 @@ export function detectLimitedTime(context: AnalysisContext): RuleResult {
       continue;
     }
 
-    const score = scoreSignals(candidate, liveElement);
+    const score = scoreSignals(candidate);
 
     if (score > 0) {
       hits.push({

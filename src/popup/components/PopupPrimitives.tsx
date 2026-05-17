@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, X } from 'lucide-react';
 import { Button, type ButtonProps } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -27,6 +27,12 @@ interface PopupStatusMessageProps extends React.HTMLAttributes<HTMLDivElement> {
   tone: PopupStatusTone;
 }
 
+interface PopupDismissibleAlertProps extends React.HTMLAttributes<HTMLDivElement> {
+  tone?: PopupStatusTone;
+  title?: string;
+  onDismiss: () => void;
+}
+
 function statusToneClassName(tone: PopupStatusTone): string {
   if (tone === 'success') {
     return 'border-emerald-200 bg-emerald-50 text-emerald-800';
@@ -42,22 +48,18 @@ function statusToneClassName(tone: PopupStatusTone): string {
 export function PopupCard({ className, ...props }: PopupCardProps) {
   return (
     <Card
-      className={cn('overflow-hidden border-slate-200 bg-white shadow-sm', className)}
+      className={cn('overflow-hidden rounded-none border-slate-200 bg-white shadow-sm', className)}
       {...props}
     />
   );
 }
 
 export function PopupHomeCard({ className, ...props }: PopupCardProps) {
-  return <Card className={cn('overflow-hidden border-slate-200 bg-white shadow-sm', className)} {...props} />;
+  return <Card className={cn('overflow-hidden rounded-none border-slate-200 bg-white shadow-sm', className)} {...props} />;
 }
 
 export function PopupResultsCard({ className, ...props }: PopupCardProps) {
-  return <Card className={cn('overflow-visible border-slate-200 bg-white shadow-sm', className)} {...props} />;
-}
-
-export function PopupModeSwitchCard({ className, ...props }: PopupCardProps) {
-  return <Card className={cn('border-slate-200 bg-white shadow-sm', className)} {...props} />;
+  return <Card className={cn('overflow-visible rounded-none border-slate-200 bg-white shadow-sm', className)} {...props} />;
 }
 
 export function PopupCardHeaderSection({ className, ...props }: PopupCardHeaderProps) {
@@ -82,10 +84,6 @@ export function PopupHomeCardBody({ className, ...props }: PopupCardBodyProps) {
 
 export function PopupResultsCardBody({ className, ...props }: PopupCardBodyProps) {
   return <CardContent className={cn('space-y-5 overflow-visible p-5', className)} {...props} />;
-}
-
-export function PopupModeSwitchBody({ className, ...props }: PopupCardBodyProps) {
-  return <CardContent className={cn('flex items-center justify-between gap-4 p-4', className)} {...props} />;
 }
 
 export function PopupScreenHeader({ title, description, onBack, backTone = 'inline', action }: PopupScreenHeaderProps) {
@@ -127,12 +125,39 @@ export function PopupMutedPanel({ className, ...props }: PopupPanelProps) {
   return <div className={cn('rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600', className)} {...props} />;
 }
 
-export function PopupDetailPanel({ className, ...props }: PopupPanelProps) {
-  return <div className={cn('rounded-lg border border-slate-200 bg-white p-4', className)} {...props} />;
-}
-
 export function PopupStatusMessage({ tone, className, ...props }: PopupStatusMessageProps) {
   return <div className={cn('rounded-lg border px-4 py-3 text-sm leading-6', statusToneClassName(tone), className)} {...props} />;
+}
+
+export function PopupDismissibleAlert({
+  tone = 'error',
+  title,
+  className,
+  children,
+  onDismiss,
+  ...props
+}: PopupDismissibleAlertProps) {
+  return (
+    <div className={cn('rounded-lg border px-4 py-3', statusToneClassName(tone), className)} {...props}>
+      <div className="flex items-start gap-3">
+        <div className="min-w-0 flex-1 space-y-1 text-sm leading-6">
+          {title ? <p className="font-medium">{title}</p> : null}
+          {children}
+        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="size-7 shrink-0 self-start rounded-md text-inherit opacity-80 hover:bg-black/5 hover:text-inherit hover:opacity-100"
+          aria-label="Dismiss alert"
+          title="Dismiss alert"
+          onClick={onDismiss}
+        >
+          <X className="size-4" />
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 export function PopupActionButton({ className, variant, ...props }: ButtonProps) {

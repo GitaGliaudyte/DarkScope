@@ -1,7 +1,5 @@
 // This file defines the static K-question weights and principle mappings used for profile scoring.
-import { KQuestion, PageType, PrincipleId, PrincipleMeta } from '../engine/types';
-
-// const ALL_PAGE_CONTEXTS: PageType[] = ['product', 'cart', 'checkout', 'registration', 'account_settings', 'generic'];
+import { KQuestion, PrincipleId, PrincipleMeta } from '../engine/types';
 
 export const K_QUESTIONS: KQuestion[] = [
   {

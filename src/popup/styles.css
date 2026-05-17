@@ -54,10 +54,8 @@
     @apply border-border;
   }
 
-  html,
-  body,
-  #root {
-    min-height: 100%;
+  html {
+    background: transparent;
   }
 
   body {
@@ -68,6 +66,10 @@
 
   body[data-surface='popup'] {
     width: 500px;
-    min-height: 560px;
+    background: transparent;
+  }
+
+  body[data-surface='popup'] #root {
+    width: 100%;
   }
 }

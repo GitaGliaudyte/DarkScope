@@ -7,7 +7,6 @@ import { MIN_PRODUCTS, MIN_STRONG_LISTING_PRODUCTS, RULE_ID } from './constants'
 import { detectFiltering, detectSorting, hasPagination } from './controlDetection';
 import { countProducts, getListingAnchor, isProductListingPage, shouldTreatAsProductDetailPage } from './productDetection';
 import { computeScore, getConfidence, getImpact, getProbability, MissingControlsClassification } from './scoring';
-import { ControlDetection } from './types';
 
 function getClassification(sortFound: boolean, filterFound: boolean): MissingControlsClassification {
   if (sortFound && filterFound) {

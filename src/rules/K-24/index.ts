@@ -42,7 +42,6 @@ type SuspiciousCategory =
   | 'legal_consent'
   | 'persistent_login';
 type Classification = 'SUSPICIOUS' | 'NEUTRAL';
-type Adjacency = 'DECISION_ADJACENT' | 'ISOLATED';
 
 interface LabelResolution {
   text: string;

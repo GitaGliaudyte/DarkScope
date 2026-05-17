@@ -1,5 +1,5 @@
 import { isVisibleElement } from '../../engine/normalizedElements';
-import { AnalysisContext, NormalizedElement, RuleResult } from '../../engine/types';
+import { AnalysisContext, RuleResult } from '../../engine/types';
 import { buildVisualTarget, clampProbability, createRuleResult } from '../../rules-utilities/resultUtils';
 import { RULE_ID } from './constants';
 import { getConfidence, scoreSignals, hasAvatar, hasEmojis, hasEmotionalWords, isExcludedContext } from './scoring';
@@ -27,7 +27,7 @@ export function detectChatbotElements(context: AnalysisContext): RuleResult {
       continue;
     }
 
-    const score = scoreSignals(element, liveElement);
+    const score = scoreSignals(liveElement);
     if (score >= 3) {
       const detectedFeatures: string[] = [];
       if (hasAvatar(liveElement)) detectedFeatures.push('avatar');

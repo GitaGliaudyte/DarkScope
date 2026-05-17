@@ -21,7 +21,7 @@ export function createNotApplicableResult(ruleId: string): RuleResult {
   };
 }
 
-export function createErrorResult(ruleId: string, err: unknown): RuleResult {
+export function createErrorResult(ruleId: string, _error?: unknown): RuleResult {
   return {
     ruleId,
     detected: false,
