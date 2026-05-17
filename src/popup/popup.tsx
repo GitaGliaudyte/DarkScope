@@ -142,14 +142,6 @@ function getPopupErrorMessage(error: unknown): string {
   return error.message;
 }
 
-function loadApiKey(): Promise<string> {
-  return new Promise((resolve) => {
-    chrome.storage.local.get(['gemini_api_key'], (items) => {
-      resolve(typeof items.gemini_api_key === 'string' ? items.gemini_api_key : '');
-    });
-  });
-}
-
 function loadPopupSettings(): Promise<PopupSettings> {
   return new Promise((resolve) => {
     chrome.storage.local.get(POPUP_SETTINGS_KEYS, (items) => {
@@ -161,24 +153,6 @@ function loadPopupSettings(): Promise<PopupSettings> {
         surfaceMode: storedSurfaceMode === 'user' ? 'user' : 'testing'
       });
     });
-  });
-}
-
-function saveApiKey(value: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.set(
-      {
-        gemini_api_key: value.trim()
-      },
-      () => {
-        if (chrome.runtime.lastError !== undefined) {
-          reject(new Error(chrome.runtime.lastError.message));
-          return;
-        }
-
-        resolve();
-      }
-    );
   });
 }
 
@@ -196,10 +170,8 @@ function savePopupSetting(key: 'popup_audience_mode' | 'popup_surface_mode', val
 }
 
 function App(): React.JSX.Element {
-  const [apiKey, setApiKey] = useState('');
   const [results, setResults] = useState<RuleResult[]>([]);
   const [overlayEnabled, setOverlayEnabledState] = useState(false);
-  const [isSavingKey, setIsSavingKey] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [statusMessage, setStatusMessage] = useState('Ready to scan the active tab.');
   const [statusTone, setStatusTone] = useState<PopupStatusTone>('neutral');
@@ -208,30 +180,11 @@ function App(): React.JSX.Element {
   const [popupScreen, setPopupScreen] = useState<PopupScreen>('home');
 
   useEffect(() => {
-    void loadApiKey().then((storedKey) => {
-      setApiKey(storedKey);
-    });
-
     void loadPopupSettings().then((settings) => {
       setSurfaceMode(settings.surfaceMode);
       setAudienceMode(settings.audienceMode);
     });
   }, []);
-
-  const handleSaveApiKey = async (): Promise<void> => {
-    setIsSavingKey(true);
-
-    try {
-      await saveApiKey(apiKey);
-      setStatusTone('success');
-      setStatusMessage(apiKey.trim().length > 0 ? 'Gemini API key saved.' : 'Gemini API key cleared.');
-    } catch (error) {
-      setStatusTone('error');
-      setStatusMessage(error instanceof Error ? error.message : 'Failed to save API key.');
-    } finally {
-      setIsSavingKey(false);
-    }
-  };
 
   const handleScan = async (): Promise<void> => {
     setIsScanning(true);
@@ -239,7 +192,10 @@ function App(): React.JSX.Element {
     setStatusMessage('Running analysis...');
 
     try {
-      const response = await sendMessageToActiveTab<ScanResponse>({ type: 'scan' });
+      const response = await sendMessageToActiveTab<ScanResponse>({
+        type: 'scan',
+        audienceMode
+      });
       const nextResults = Array.isArray(response.results) ? response.results : [];
 
       setResults(nextResults);
@@ -318,15 +274,11 @@ function App(): React.JSX.Element {
         <section style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <PopupModeSwitch mode={surfaceMode} onModeChange={handleSurfaceModeChange} />
           <TestingPopupView
-            apiKey={apiKey}
-            isSavingKey={isSavingKey}
             isScanning={isScanning}
             overlayEnabled={overlayEnabled}
             results={results}
             statusMessage={statusMessage}
             statusTone={statusTone}
-            onApiKeyChange={setApiKey}
-            onSaveApiKey={() => void handleSaveApiKey()}
             onScan={() => void handleScan()}
             onToggleOverlay={() => void handleSetOverlayEnabled(!overlayEnabled)}
           />

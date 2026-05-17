@@ -5,6 +5,7 @@ import { RuleResult } from '../engine/types';
 
 interface ScanMessage {
   type: 'scan';
+  audienceMode?: 'user' | 'designer';
 }
 
 interface OverlayToggleMessage {
@@ -25,7 +26,8 @@ chrome.runtime.onMessage.addListener((message: unknown, _sender, sendResponse) =
 
   if (typedMessage?.type === 'scan') {
     void (async () => {
-      const results = await runDarkScopeAnalysis();
+      const audienceMode = typedMessage.audienceMode === 'designer' ? 'designer' : 'user';
+      const results = await runDarkScopeAnalysis(audienceMode);
       lastResults = results;
       sendResponse({ results, overlayEnabled: true });
     })();
