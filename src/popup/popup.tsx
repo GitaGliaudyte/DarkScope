@@ -23,6 +23,10 @@ interface PingResponse {
   ok?: boolean;
 }
 
+interface OverlayFocusResponse {
+  ok?: boolean;
+}
+
 interface ActiveTabInfo {
   id: number;
   url: string;
@@ -227,6 +231,28 @@ function App(): React.JSX.Element {
     }
   };
 
+  const handleFocusIssue = async (ruleId: string): Promise<void> => {
+    try {
+      const response = await sendMessageToActiveTab<OverlayFocusResponse>({
+        type: 'focusOverlay',
+        ruleId
+      });
+
+      if (response.ok !== true) {
+        setStatusTone('error');
+        setStatusMessage(`Unable to locate a visible ${ruleId} overlay on the page.`);
+        return;
+      }
+
+      setOverlayEnabledState(true);
+      setStatusTone('neutral');
+      setStatusMessage(`Focused the first ${ruleId} occurrence on the page.`);
+    } catch (error) {
+      setStatusTone('error');
+      setStatusMessage(error instanceof Error ? error.message : 'Failed to focus the selected issue.');
+    }
+  };
+
   const handleSurfaceModeChange = (nextMode: PopupSurfaceMode): void => {
     setSurfaceMode(nextMode);
     void savePopupSetting('popup_surface_mode', nextMode);
@@ -306,6 +332,7 @@ function App(): React.JSX.Element {
               results={results}
               onBack={() => setPopupScreen('results')}
               onOpenPrincipleScores={() => setPopupScreen('principle_scores')}
+              onFocusIssue={(ruleId) => void handleFocusIssue(ruleId)}
             />
           ) : popupScreen === 'principle_scores' && results.length > 0 ? (
             <PopupPrincipleScoresScreen
