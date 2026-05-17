@@ -1,5 +1,5 @@
 // This file defines the static K-question weights and principle mappings used for profile scoring.
-import { KQuestion, PageType, PrincipleMeta } from '../engine/types';
+import { KQuestion, PageType, PrincipleId, PrincipleMeta } from '../engine/types';
 
 // const ALL_PAGE_CONTEXTS: PageType[] = ['product', 'cart', 'checkout', 'registration', 'account_settings', 'generic'];
 
@@ -184,3 +184,39 @@ export const PRINCIPLE_META: PrincipleMeta[] = [
   { id: 'P6', label: 'Unbiased outcomes' },
   { id: 'P7', label: 'Designer responsibility' }
 ];
+
+const PRINCIPLE_ORDER: readonly PrincipleId[] = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7'];
+const K_QUESTION_BY_ID = new Map(K_QUESTIONS.map((question) => [question.id, question]));
+
+export function getKQuestion(ruleId: string): KQuestion | undefined {
+  return K_QUESTION_BY_ID.get(ruleId);
+}
+
+export function getRuleDisplayName(ruleId: string): string {
+  const question = getKQuestion(ruleId);
+
+  if (question === undefined) {
+    return ruleId;
+  }
+
+  return `${question.id} ${question.label}`;
+}
+
+export function getOrderedPrincipleViolations(ruleId: string): PrincipleId[] {
+  const question = getKQuestion(ruleId);
+
+  if (question === undefined) {
+    return [];
+  }
+
+  return PRINCIPLE_ORDER.filter((principleId) => (question.principles[principleId] ?? 0) > 0).sort((left, right) => {
+    const rightWeight = question.principles[right] ?? 0;
+    const leftWeight = question.principles[left] ?? 0;
+
+    if (rightWeight !== leftWeight) {
+      return rightWeight - leftWeight;
+    }
+
+    return PRINCIPLE_ORDER.indexOf(left) - PRINCIPLE_ORDER.indexOf(right);
+  });
+}

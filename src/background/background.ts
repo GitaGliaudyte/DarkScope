@@ -1,4 +1,6 @@
 // This service worker proxies Gemini API calls so content scripts never hold the API key.
+import { GEMINI_API_KEY } from '../config/secrets';
+
 interface LlmRequestMessage {
   type: 'llm_request';
   payload: {
@@ -89,12 +91,8 @@ function shouldRequestJsonResponse(prompt: string): boolean {
 }
 
 function getApiKey(): Promise<string | undefined> {
-  return new Promise((resolve) => {
-    chrome.storage.local.get('gemini_api_key', (items) => {
-      const value = items.gemini_api_key;
-      resolve(typeof value === 'string' && value.length > 0 ? value : undefined);
-    });
-  });
+  const value = GEMINI_API_KEY.trim();
+  return Promise.resolve(value.length > 0 ? value : undefined);
 }
 
 function isRuntimeMessage(message: unknown): message is LlmRequestMessage | LinkCheckRequestMessage {

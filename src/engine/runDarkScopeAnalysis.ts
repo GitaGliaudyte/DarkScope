@@ -1,7 +1,7 @@
 // This file orchestrates snapshotting, classification, rule execution, LLM enrichment, and overlay rendering.
 import { classifyPageContext } from './classifyPageContext';
 import { createPageSnapshot } from './domSnapshot';
-// import { enrichWithLLM } from './llmExplainer';
+import { enrichWithLLM } from './llmExplainer';
 import { drawHighlights, removeHighlights } from './overlayRenderer';
 import { runRuleEngine } from './ruleEngine';
 import { AnalysisContext, RuleResult } from './types';
@@ -9,7 +9,7 @@ import rules from '../rules';
 import { K_QUESTIONS } from '../rules/kQuestions';
 import { computePrincipleScores } from '../scoring/principleScorer';
 
-export async function runDarkScopeAnalysis(): Promise<RuleResult[]> {
+export async function runDarkScopeAnalysis(audienceMode: 'user' | 'designer' = 'user'): Promise<RuleResult[]> {
   removeHighlights();
 
   const snapshot = createPageSnapshot(document);
@@ -23,11 +23,11 @@ export async function runDarkScopeAnalysis(): Promise<RuleResult[]> {
     pageContext
   };
   const rawResults = await runRuleEngine(context, rules);
-  // const results = await enrichWithLLM(rawResults); not implemented yet
+  const results = await enrichWithLLM(rawResults, audienceMode);
 
-  computePrincipleScores(rawResults, K_QUESTIONS);
+  computePrincipleScores(results, K_QUESTIONS);
 
-  drawHighlights(rawResults);
+  drawHighlights(results);
 
-  return rawResults;
+  return results;
 }
