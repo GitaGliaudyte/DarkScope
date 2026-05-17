@@ -87,8 +87,9 @@ export const K_QUESTIONS: KQuestion[] = [
   {
     id: 'K-26',
     label: 'Does the chatbot have at least one of the following elements: avatar, uses emojis, emotional words?',
+    displayLabel: 'Expressive   User Interface elements',
     weight: 2,
-    principles: { P1: 1, P3: 0.5 },
+    principles: { P1: 0.5, P2: 0.5, P3: 0.5, P4: 0, P5: 0, P6: 1, P7: 0.5 },
     relevantContexts: ['product', 'registration', 'account_settings', 'cart']
   },
   {
@@ -116,20 +117,20 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product', 'checkout', 'cart', 'account_settings', 'generic']
   },
   {
-    id: 'K-46',
-    label: 'Are the newsletter and marketing checkboxes checked by default?',
-    displayLabel: 'Pre-selected marketing consent',
-    weight: 2,
-    principles: { P1: 1, P2: 0, P3: 0, P4: 0.5, P5: 0, P6: 0, P7: 0 },
-    relevantContexts: ['checkout', 'account_settings', 'registration', 'generic']
-  },
-  {
     id: 'K-42',
     label: "Are you asked to provide more than just your email and password when registering?",
     displayLabel: 'Excessive registration requirements',
     weight: 2,
     principles: { P1: 0.5, P2: 0, P3: 0, P4: 1, P5: 0, P6: 0.5, P7: 0 },
     relevantContexts: ['registration']
+  },
+  {
+    id: 'K-46',
+    label: 'Are the newsletter and marketing checkboxes checked by default?',
+    displayLabel: 'Pre-selected marketing consent',
+    weight: 2,
+    principles: { P1: 1, P2: 0, P3: 0, P4: 0.5, P5: 0, P6: 0, P7: 0 },
+    relevantContexts: ['checkout', 'account_settings', 'registration', 'generic']
   },
   {
     id: 'K-51',
@@ -160,7 +161,7 @@ export const K_QUESTIONS: KQuestion[] = [
     label: 'Are there frequently repeated words among the reviews? Are there no user identifications in the reviews?',
     displayLabel: 'Suspicious reviews',
     weight: 1,
-    principles: { P1: 0, P2: 0.5, P3: 0.5, P4: 0, P5: 0, P6: 0.5, P7: 0.5 },
+    principles: { P1: 0, P2: 0.5, P3: 0.5, P4: 0, P5: 0, P6: 0.5, P7: 0 },
     relevantContexts: ['product']
   },
   {
@@ -200,7 +201,7 @@ export const K_QUESTIONS: KQuestion[] = [
     label: 'Can a user only see personalized content? Can a user disable content personalization?',
     displayLabel: 'Personalized content limitations',
     weight: 2,
-    principles: { P2: 0.5, P3: 0.5, P6: 0.5 },
+    principles: { P1: 0.5, P2: 0, P3: 0.5, P4: 0.5, P5: 0.5, P6: 0.5, P7: 0 },
     relevantContexts: ['product', 'account_settings', 'generic']
   }
 ];
