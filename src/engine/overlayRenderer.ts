@@ -23,6 +23,7 @@ function createOverlayRoot(): HTMLDivElement {
   root.style.left = '0';
   root.style.width = '100vw';
   root.style.height = '100vh';
+  root.style.overflow = 'hidden';
   root.style.pointerEvents = 'none';
   root.style.zIndex = '2147483647';
   return root;
@@ -46,12 +47,33 @@ function canHighlightElement(element: HTMLElement): boolean {
 }
 
 function positionHighlight(record: HighlightRecord): void {
+  if (!canHighlightElement(record.element)) {
+    record.box.style.display = 'none';
+    return;
+  }
+
   const rect = record.element.getBoundingClientRect();
+  const left = rect.left - HIGHLIGHT_PADDING;
+  const top = rect.top - HIGHLIGHT_PADDING;
+  const width = rect.width + HIGHLIGHT_PADDING * 2;
+  const height = rect.height + HIGHLIGHT_PADDING * 2;
+  const isOutsideViewport =
+    left >= window.innerWidth ||
+    top >= window.innerHeight ||
+    left + width <= 0 ||
+    top + height <= 0;
+
+  if (isOutsideViewport) {
+    record.box.style.display = 'none';
+    return;
+  }
+
+  record.box.style.display = 'block';
   record.box.style.position = 'absolute';
-  record.box.style.left = `${Math.max(0, rect.left - HIGHLIGHT_PADDING)}px`;
-  record.box.style.top = `${Math.max(0, rect.top - HIGHLIGHT_PADDING)}px`;
-  record.box.style.width = `${rect.width + HIGHLIGHT_PADDING * 2}px`;
-  record.box.style.height = `${rect.height + HIGHLIGHT_PADDING * 2}px`;
+  record.box.style.left = `${left}px`;
+  record.box.style.top = `${top}px`;
+  record.box.style.width = `${width}px`;
+  record.box.style.height = `${height}px`;
 }
 
 function repositionHighlights(): void {
