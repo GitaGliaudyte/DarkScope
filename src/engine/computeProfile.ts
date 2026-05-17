@@ -29,7 +29,7 @@ export function computeProfile(results: RuleResult[], questions: KQuestion[]): V
       continue;
     }
 
-    const answer = result.detected ? 1 : 0;
+    const answer = result.detected ? Math.max(0, Math.min(1, result.probability)) : 0;
 
     for (const principleId of PRINCIPLE_IDS) {
       const strength = question.principles[principleId];
