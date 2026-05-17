@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, X } from 'lucide-react';
 import { Button, type ButtonProps } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -25,6 +25,12 @@ interface PopupScreenHeaderProps {
 
 interface PopupStatusMessageProps extends React.HTMLAttributes<HTMLDivElement> {
   tone: PopupStatusTone;
+}
+
+interface PopupDismissibleAlertProps extends React.HTMLAttributes<HTMLDivElement> {
+  tone?: PopupStatusTone;
+  title?: string;
+  onDismiss: () => void;
 }
 
 function statusToneClassName(tone: PopupStatusTone): string {
@@ -133,6 +139,37 @@ export function PopupDetailPanel({ className, ...props }: PopupPanelProps) {
 
 export function PopupStatusMessage({ tone, className, ...props }: PopupStatusMessageProps) {
   return <div className={cn('rounded-lg border px-4 py-3 text-sm leading-6', statusToneClassName(tone), className)} {...props} />;
+}
+
+export function PopupDismissibleAlert({
+  tone = 'error',
+  title,
+  className,
+  children,
+  onDismiss,
+  ...props
+}: PopupDismissibleAlertProps) {
+  return (
+    <div className={cn('rounded-lg border px-4 py-3', statusToneClassName(tone), className)} {...props}>
+      <div className="flex items-start gap-3">
+        <div className="min-w-0 flex-1 space-y-1 text-sm leading-6">
+          {title ? <p className="font-medium">{title}</p> : null}
+          {children}
+        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="size-7 shrink-0 self-start rounded-md text-inherit opacity-80 hover:bg-black/5 hover:text-inherit hover:opacity-100"
+          aria-label="Dismiss alert"
+          title="Dismiss alert"
+          onClick={onDismiss}
+        >
+          <X className="size-4" />
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 export function PopupActionButton({ className, variant, ...props }: ButtonProps) {
