@@ -64,7 +64,7 @@ Gemini is used for:
 
 - explanation and recommendation generation
 - some page-classification fallback cases
-- the language inconsistency rule (`K-34`)
+- the language inconsistency rule (`KO-13`)
 
 Set your API key in `src/config/secrets.ts`:
 
