@@ -7,7 +7,7 @@ It is built for two audiences:
 - `User mode` explains how a pattern may affect a person using the site.
 - `Designer mode` keeps the scan more audit-oriented and adds interface-focused suggestions.
 
-![DarkScope home view](image.png)
+![DarkScope home view](images\image.png)
 
 ## How It Helps
 
@@ -27,8 +27,9 @@ After a scan, the popup shows:
 - per-rule suggestions in `Designer mode`
 - an overlay toggle to show or hide highlights on the page
 
-![Results summary | User mode](image-1.png)
-![Explanation of a deceptive pattern | User mode](image-2.png)
+
+![Results summary | User mode](images\image-4.png)
+![Explanation of a deceptive pattern | User mode](images\image-5.png)
 
 The principle scoring maps findings to seven principles:
 
@@ -40,7 +41,7 @@ The principle scoring maps findings to seven principles:
 - `P6` Unbiased outcomes
 - `P7` Designer responsibility
 
-![Profile Scoring](image-3.png)
+![Profile Scoring](images\image-3.png)
 
 ## Setup
 
