@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "DarkScope",
   "version": "1.0.0",
-  "description": "Deceptive pattern detector for Chrome.",
+  "description": "Deceptive pattern detector for chromium-based browsers.",
   "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": ["<all_urls>", "https://generativelanguage.googleapis.com/*"],
   "action": {
