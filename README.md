@@ -1,11 +1,13 @@
 # DarkScope
 
-DarkScope is a Chrome extension for detecting deceptive interface patterns on live web pages. It scans the active tab, highlights suspicious UI elements directly on the page, and summarizes how strongly the page may be pushing, confusing, or steering the user.
+DarkScope is a browser extension for Chromium-based web browsers designed to detect deceptive interface patterns on live web pages. It scans the active tab, highlights suspicious UI elements directly on the page, and summarizes how strongly the page may be pushing, confusing, or steering the user.
 
 It is built for two audiences:
 
 - `User mode` explains how a pattern may affect a person using the site.
 - `Designer mode` keeps the scan more audit-oriented and adds interface-focused suggestions.
+
+DarkScope was developed by two final-year students of the Faculty of Mathematics and Informatics at Vilnius University as part of the bachelor thesis.
 
 ![DarkScope home view](images/image.png)
 
@@ -109,10 +111,10 @@ The build output is written to `dist/`.
 
 ## Notes
 
-- Chrome internal pages, extension pages, and similar restricted tabs cannot be scanned.
+- Browser's internal pages, extension pages, and similar restricted tabs cannot be scanned.
 - Most detection is rule-based, so results are best treated as a review aid, not a legal or compliance verdict.
 - When Gemini is enabled, selected page text and evidence are sent to the Gemini API through the background worker for LLM-backed features.
 
-## Contributors:
+## Contributors
 - Gita Gliaudytė, VU MIF
 - Austėja Nenartavičiūtė, VU MIF
