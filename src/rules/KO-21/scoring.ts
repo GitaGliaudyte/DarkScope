@@ -7,8 +7,7 @@ export function matchesUserActivityPattern(text: string): boolean {
 }
 
 
-export function scoreSignals(_element: NormalizedElement, liveElement: HTMLElement): number {
-
+export function scoreSignals(_element: NormalizedElement): number {
   return 5;
 }
 

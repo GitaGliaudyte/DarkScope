@@ -1,4 +1,4 @@
-import { AnalysisContext, RuleResult } from '../../engine/types';
+import { RuleResult } from '../../engine/types';
 import { createRuleResult, clampProbability, buildVisualTarget } from '../../rules-utilities/resultUtils';
 import { generateUniqueSelector, isVisibleElement } from '../../engine/normalizedElements';
 import { isRealPersonalizationBlock } from './scoring';
@@ -44,7 +44,7 @@ function findPersonalizationHeadersByText(): HTMLElement[] {
   });
 }
 
-export function detectPersonalizationLock(context: AnalysisContext): RuleResult {
+export function detectPersonalizationLock(): RuleResult {
   const evidence: RuleResult['evidence'] = [];
   const selectors = new Set<string>();
   let personalizationFound = false;
