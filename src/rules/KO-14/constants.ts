@@ -56,3 +56,16 @@ export const EXCLUSION_SELECTORS = [
   '[class*="menu"]',
   '[class*="header"]'
 ];
+
+export const NAVIGATION_KEYWORDS = [
+  'storeswitcher',
+  'store-switcher',
+  'dropdown',
+  'nav',
+  'navigation',
+  'menu',
+  'header',
+  'cookie',
+  'consent',
+  'privacy'
+] as const;
