@@ -3,7 +3,7 @@ import { KQuestion, PrincipleId, PrincipleMeta } from '../engine/types';
 
 export const K_QUESTIONS: KQuestion[] = [
   {
-    id: 'K-02',
+    id: 'KO-1',
     label: 'Is the account deletion function missing from account settings?',
     displayLabel: 'Hidden account deletion',
     weight: 2,
@@ -11,7 +11,7 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['account_settings']
   },
   {
-    id: 'K-04',
+    id: 'KO-2',
     label: 'Are there links on the page returning 4xx or 5xx HTTP status codes?',
     displayLabel: 'Broken links',
     weight: 1,
@@ -19,7 +19,7 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product', 'registration', 'account_settings', 'checkout', 'cart']
   },
   {
-    id: 'K-05',
+    id: 'KO-3',
     label: 'Does the system block text copy functionality on informational content?',
     displayLabel: 'Copy-restricted content',
     weight: 2,
@@ -27,7 +27,7 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product', 'generic', 'account_settings']
   },
   {
-    id: 'K-06',
+    id: 'KO-4',
     label: 'Does the system prevent users from copying and pasting in input fields?',
     displayLabel: 'Input copy-paste restrictions',
     weight: 2,
@@ -35,7 +35,7 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['account_settings', 'checkout', 'registration']
   },
   {
-    id: 'K-11',
+    id: 'KO-5',
     label: 'Are privacy settings reachable from the main account settings page?',
     displayLabel: 'Privacy settings accessibility',
     weight: 2,
@@ -43,7 +43,7 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['account_settings']
   },
   {
-    id: 'K-13',
+    id: 'KO-6',
     label: 'Are the advertising labels of an element not visually distinguished?',
     displayLabel: 'Undistinguished advertising labels',
     weight: 1,
@@ -51,7 +51,7 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product']
   },
   {
-    id: 'K-16',
+    id: 'KO-7',
     label: 'Are the displayed discount numbers deceptive - either an implausibly large discount (>70%) or a mathematically inconsistent price?',
     displayLabel: 'Deceptive discounts',
     weight: 2,
@@ -59,7 +59,7 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product', 'cart']
   },
   {
-    id: 'K-20',
+    id: 'KO-8',
     label: 'Does an element in the top layer occupy more than 50% of the total screen size?',
     displayLabel: 'Large intrusive overlay',
     weight: 1,
@@ -67,7 +67,7 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product', 'checkout', 'cart', 'account_settings']
   },
   {
-    id: 'K-23',
+    id: 'KO-9',
     label: 'Does the more expensive option have greater visual weight than the others?',
     displayLabel: 'Emphasized expensive option',
     weight: 1,
@@ -75,7 +75,7 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product']
   },
   {
-    id: 'K-24',
+    id: 'KO-10',
     label: 'Are options pre-selected by default?',
     displayLabel: 'Pre-selected options',
     weight: 2,
@@ -83,7 +83,7 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product', 'registration', 'account_settings', 'cart']
   },
   {
-    id: 'K-26',
+    id: 'KO-11',
     label: 'Does the chatbot have at least one of the following elements: avatar, uses emojis, emotional words?',
     displayLabel: 'Expressive   User Interface elements',
     weight: 2,
@@ -91,7 +91,7 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product', 'registration', 'account_settings', 'cart']
   },
   {
-    id: 'K-30',
+    id: 'KO-12',
     label: 'Is there no filtering or sorting functionality?',
     displayLabel: 'Missing filtering or sorting',
     weight: 2,
@@ -99,7 +99,7 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product']
   },
   {
-    id: 'K-34',
+    id: 'KO-13',
     label: "Is important information on the page presented in a different language than the rest of the system's content?",
     displayLabel: 'Language inconsistency',
     weight: 2,
@@ -107,7 +107,7 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product', 'checkout', 'registration', 'generic']
   },
   {
-    id: 'K-38',
+    id: 'KO-14',
     label: 'Are there any automatic pop-ups or modals that appear without user interaction?',
     displayLabel: 'Automatic pop-ups',
     weight: 1,
@@ -115,7 +115,7 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product', 'checkout', 'cart', 'account_settings', 'generic']
   },
   {
-    id: 'K-42',
+    id: 'KO-15',
     label: "Are you asked to provide more than just your email and password when registering?",
     displayLabel: 'Excessive registration requirements',
     weight: 2,
@@ -123,7 +123,7 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['registration']
   },
   {
-    id: 'K-46',
+    id: 'KO-16',
     label: 'Are the newsletter and marketing checkboxes checked by default?',
     displayLabel: 'Pre-selected marketing consent',
     weight: 2,
@@ -131,7 +131,7 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['checkout', 'account_settings', 'registration', 'generic']
   },
   {
-    id: 'K-51',
+    id: 'KO-17',
     label: 'Are videos or other content playing automatically?',
     displayLabel: 'Automatic content playback',
     weight: 3,
@@ -139,7 +139,7 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product']
   },
   {
-    id: 'K-53',
+    id: 'KO-18',
     label: 'Does the page contain text about high demand (for example, "High demand," "selling out quickly")?',
     displayLabel: 'High demand messaging',
     weight: 1,
@@ -147,7 +147,7 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product', 'cart', 'checkout']
   },
   {
-    id: 'K-55',
+    id: 'KO-19',
     label: 'Is there a visually highlighted information provided with the product that its quantity is limited (e.g. the statement "only 5 left", highlighted in red)?',
     displayLabel: 'Limited quantity indicators',
     weight: 1,
@@ -155,7 +155,7 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product', 'cart', 'checkout']
   },
   {
-    id: 'K-57',
+    id: 'KO-20',
     label: 'Are there frequently repeated words among the reviews? Are there no user identifications in the reviews?',
     displayLabel: 'Suspicious reviews',
     weight: 1,
@@ -163,7 +163,7 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product']
   },
   {
-    id: 'K-58',
+    id: 'KO-21',
     label: 'Does the interface provide information about the activity of other (real or fictional) users (e.g. "X just bought Y", "N users are viewing this item")?',
     displayLabel: 'Social pressure notifications',
     weight: 1,
@@ -171,7 +171,7 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product', 'cart', 'checkout']
   },
   {
-    id: 'K-59',
+    id: 'KO-22',
     label: 'Is there a countdown timer in the interface showing limited-time access or a discount for a product or service?',
     displayLabel: 'Countdown timer pressure',
     weight: 1,
@@ -179,7 +179,7 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product', 'cart', 'checkout']
   },
   {
-    id: 'K-60',
+    id: 'KO-23',
     label: 'Does the product or service indicate that it is a limited-time offer and will end soon (e.g. "Limited-time offer")?',
     displayLabel: 'Limited-time offer messaging',
     weight: 1,
@@ -187,7 +187,7 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product', 'cart', 'checkout']
   },
   {
-    id: 'K-61',
+    id: 'KO-24',
     label: 'Are there words next to the refusal discouraging the user from completing the action (e.g. "don\'t miss it," "you\'ll regret it," "shame," "no, I want to overpay")?',
     displayLabel: 'Confirmshaming language',
     weight: 2,
@@ -195,7 +195,7 @@ export const K_QUESTIONS: KQuestion[] = [
     relevantContexts: ['product', 'cart', 'checkout', 'registration', 'account_settings']
   },
   {
-    id: 'K-63',
+    id: 'KO-25',
     label: 'Can a user only see personalized content? Can a user disable content personalization?',
     displayLabel: 'Personalized content limitations',
     weight: 2,

@@ -169,7 +169,7 @@ function buildPrompt(results: RuleResult[], audienceMode: ExplainerAudienceMode)
       ? 'Avoid design jargon and abstract descriptions unless they are tied to a clear user consequence.'
       : 'Avoid vague language and name the problematic interface behavior directly.',
     'Do not mention probability, confidence, evidence counts, or selectors in the output.',
-    'Return JSON only in this exact shape: {"items":[{"ruleId":"K-00","explanation":"...","recommendation":"..."}]}',
+    'Return JSON only in this exact shape: {"items":[{"ruleId":"KO-1","explanation":"...","recommendation":"..."}]}',
     'Detected patterns:',
     ...ruleBlocks.flatMap((block, index) => [`[${index + 1}]`, block])
   ].join('\n');
