@@ -37,4 +37,4 @@ export const DISCOURAGEMENT_PATTERNS = [
 
 export const CANCELLATION_KEYWORDS = ['cancel', 'decline', 'refuse', 'reject', 'unsubscribe', 'opt out', 'opt-out', 'skip', 'exit', 'close', 'dismiss', 'no thanks', 'no, thanks'] as const;
 
-export const EXCLUDED_CONTEXT = ['opening hours', 'schedule', 'timetable', 'business hours', 'contact hours'] as const;
+export const EXCLUDED_CONTEXT = ['terms', 'privacy', 'policy', 'agreement', 'legal', 'footer', 'navigation', 'menu'] as const;

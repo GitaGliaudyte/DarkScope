@@ -1,20 +1,13 @@
 import { Confidence, NormalizedElement } from '../../engine/types';
-import { EXCLUDED_CONTEXT, USER_ACTIVITY_PATTERNS } from './constants';
+import { USER_ACTIVITY_PATTERNS } from './constants';
 
 export function matchesUserActivityPattern(text: string): boolean {
   const normalized = text.toLowerCase();
   return USER_ACTIVITY_PATTERNS.some((pattern) => pattern.test(normalized));
 }
 
-function isInExcludedContext(element: HTMLElement): boolean {
-  const context = element.textContent?.toLowerCase() ?? '';
-  return EXCLUDED_CONTEXT.some((phrase) => context.includes(phrase));
-}
 
 export function scoreSignals(_element: NormalizedElement, liveElement: HTMLElement): number {
-  if (isInExcludedContext(liveElement)) {
-    return 0;
-  }
 
   return 5;
 }

@@ -1,9 +1,5 @@
 import { Confidence, NormalizedElement } from '../../engine/types';
-import {
-  PERSONALIZATION_DISABLE_PATTERNS,
-  PERSONALIZATION_DISABLE_SELECTORS,
-  PERSONALIZATION_INDICATORS
-} from './constants';
+import {PERSONALIZATION_DISABLE_PATTERNS, PERSONALIZATION_DISABLE_SELECTORS, PERSONALIZATION_INDICATORS, PRODUCT_SELECTORS, RECOMMENDATION_SELECTORS, UI_CONTAINER_SELECTORS} from './constants';
 
 export function matchesPersonalizationIndicators(text: string): boolean {
   const normalized = text.toLowerCase();
@@ -38,36 +34,19 @@ export function hasDisableControls(): boolean {
 }
 
 export function isRealPersonalizationBlock(element: HTMLElement): boolean {
-  const hasContentItems = 
-    element.querySelector('img') !== null ||
-    element.querySelector('a[href*="/product/"]') !== null ||
-    element.querySelector('a[href*="/item/"]') !== null ||
-    element.querySelector('a[href*="/p/"]') !== null ||
-    element.querySelector('[data-product-id]') !== null ||
-    element.querySelector('[data-item-id]') !== null ||
-    element.querySelector('[itemtype*="Product"]') !== null ||
-    element.querySelector('[data-recommendation]') !== null;
+  const hasProductSignals = PRODUCT_SELECTORS.some(sel => element.querySelector(sel));
+  const hasRecommendationSignals = RECOMMENDATION_SELECTORS.some(sel => element.querySelector(sel));
+  const hasUIContainer = UI_CONTAINER_SELECTORS.some(sel => element.querySelector(sel));
 
-  const hasGridPattern = 
-    element.querySelector('[class*="grid"]') !== null ||
-    element.querySelector('[class*="list"]') !== null ||
-    element.querySelector('[class*="carousel"]') !== null ||
-    element.querySelector('[class*="slider"]') !== null ||
-    element.querySelector('[class*="swiper"]') !== null ||
-    element.querySelector('[class*="shoveler"]') !== null;
-
-  const hasGenericProductClass = 
-    element.querySelector('[class*="product-"]') !== null ||
-    element.querySelector('[class*="item-card"]') !== null ||
-    element.querySelector('[class*="card-"]') !== null ||
-    element.querySelector('[id*="recommend"]') !== null;
-
-  const hasMultipleItems = 
+  const multipleItems =
     element.querySelectorAll('img').length >= 2 ||
-    element.querySelectorAll('a[href*="/product/"]').length >= 2 ||
     element.querySelectorAll('[data-product-id]').length >= 2;
 
-  return (hasContentItems && (hasGridPattern || hasGenericProductClass)) || hasMultipleItems;
+  return (
+    (hasProductSignals && hasRecommendationSignals) ||
+    (hasProductSignals && hasUIContainer) ||
+    multipleItems
+  );
 }
 
 export function scoreSignals(element: NormalizedElement, liveElement: HTMLElement): number {

@@ -22,5 +22,3 @@ export const USER_ACTIVITY_PATTERNS = [
   /\d+\s+viewing\s+now/i,
   /\d+\s+currently\s+viewing/i
 ] as const;
-
-export const EXCLUDED_CONTEXT = ['opening hours', 'schedule', 'timetable', 'business hours', 'contact hours'] as const;

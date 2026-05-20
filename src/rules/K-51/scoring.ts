@@ -11,8 +11,6 @@ export function scoreAutoplay(el: HTMLElement): number {
 
     if (!media.paused) score += 4;
 
-    if (media.muted && el.hasAttribute('playsinline')) score += 3;
-
     return score;
   }
 
