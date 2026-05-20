@@ -27,9 +27,8 @@ After a scan, the popup shows:
 - per-rule suggestions in `Designer mode`
 - an overlay toggle to show or hide highlights on the page
 
-
-![Results summary | User mode](images/image-4.png)
-![Explanation of a deceptive pattern | User mode](images/image-5.png)
+<img src="images/image-4.png" alt="Results summary | User mode" width="420" />
+<img src="images/image-5.png" alt="Explanation of a deceptive pattern | User mode" width="420" />
 
 The principle scoring maps findings to seven principles:
 
