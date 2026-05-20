@@ -1,5 +1,5 @@
 import { AnalysisContext, RuleResult } from '../../engine/types';
-import { createRuleResult, clampProbability, buildVisualTarget } from '../../rules-utilities/resultUtils';
+import { createRuleResult, buildVisualTarget } from '../../rules-utilities/resultUtils';
 import { generateUniqueSelector, isVisibleElement } from '../../engine/normalizedElements';
 import {
   RULE_ID,

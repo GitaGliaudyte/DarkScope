@@ -9,8 +9,8 @@ const KO25Rule: RuleDefinition = {
   relevantOn: [],
   skipIfNotRelevant: false,
   relevantContexts: ['product', 'account_settings', 'generic', 'checkout'],
-  detect(context: AnalysisContext): RuleResult {
-    return detectPersonalizationLock(context);
+  detect(_context: AnalysisContext): RuleResult {
+    return detectPersonalizationLock();
   }
 };
 
