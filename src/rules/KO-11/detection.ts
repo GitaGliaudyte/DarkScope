@@ -2,7 +2,7 @@ import { isVisibleElement } from '../../engine/normalizedElements';
 import { AnalysisContext, RuleResult } from '../../engine/types';
 import { buildVisualTarget, clampProbability, createRuleResult } from '../../rules-utilities/resultUtils';
 import { RULE_ID } from './constants';
-import { getConfidence, scoreSignals, hasAvatar, hasEmojis, hasEmotionalWords, isExcludedContext } from './scoring';
+import { getConfidence, scoreSignals, hasAvatar, hasEmojis, hasEmotionalWords, isExcludedContext, isInsideChat } from './scoring';
 
 interface AnthropomorphicHit {
   selector: string;
@@ -24,6 +24,14 @@ export function detectChatbotElements(context: AnalysisContext): RuleResult {
 
     const liveElement = document.querySelector(element.selector) as HTMLElement;
     if (!liveElement || !isVisibleElement(liveElement) || isExcludedContext(liveElement)) {
+      continue;
+    }
+
+    if (isExcludedContext(liveElement)) {
+      continue;
+    }
+    
+    if (!isInsideChat(liveElement)) {
       continue;
     }
 

@@ -9,6 +9,8 @@ import {
   EXTRA_SENSITIVE_FIELD_PATTERNS
 } from './constants';
 
+import { computeScore, getConfidence, getProbability, getImpact } from './scoring';
+
 function matchesAnyPattern(value: string | null | undefined, patterns: RegExp[]): boolean {
   if (!value) return false;
   const v = value.toLowerCase();
@@ -136,8 +138,9 @@ export function detectSignupDataIssues(_context: AnalysisContext): RuleResult {
     }
 
     if (emailFields.length > 0 && passwordFields.length > 0 && extraFields.length > 0) {
-      const severity = Math.min(3 + extraFields.length, 10);
-      highestSeverity = Math.max(highestSeverity, severity);
+      const summary = computeScore(extraFields.length);
+      highestSeverity = Math.max(highestSeverity, summary.rawScore);
+
       occurrenceCount += extraFields.length;
 
       for (const field of extraFields) {
@@ -155,18 +158,16 @@ export function detectSignupDataIssues(_context: AnalysisContext): RuleResult {
   }
 
   const detected = evidence.length > 0;
-  const probability = detected ? clampProbability(highestSeverity / 10) : 0;
-  const confidence: RuleResult['confidence'] =
-    highestSeverity >= 7 ? 'high' : highestSeverity >= 4 ? 'medium' : detected ? 'low' : 'low';
+  const summary = computeScore(highestSeverity);
 
   return createRuleResult({
-    ruleId: RULE_ID,
-    detected,
-    probability,
-    confidence,
-    impact: 'medium',
-    evidence,
-    visualTarget: buildVisualTarget(Array.from(selectors)),
-    occurrenceCount
-  });
+  ruleId: RULE_ID,
+  detected,
+  probability: getProbability(summary),
+  confidence: getConfidence(summary),
+  impact: getImpact(summary),
+  evidence,
+  visualTarget: buildVisualTarget(Array.from(selectors)),
+  occurrenceCount
+});
 }

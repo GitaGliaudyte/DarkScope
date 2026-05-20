@@ -1,5 +1,5 @@
 import { Confidence, NormalizedElement } from '../../engine/types';
-import { EXCLUDED_CONTEXT, HIGH_DEMAND_PATTERNS } from './constants';
+import { EXCLUDED_SELECTORS, HIGH_DEMAND_PATTERNS } from './constants';
 
 export function matchesHighDemandPattern(text: string): boolean {
   const normalized = text.toLowerCase();
@@ -7,8 +7,7 @@ export function matchesHighDemandPattern(text: string): boolean {
 }
 
 function isInExcludedContext(element: HTMLElement): boolean {
-  const context = element.textContent?.toLowerCase() ?? '';
-  return EXCLUDED_CONTEXT.some((phrase) => context.includes(phrase));
+  return element.closest(EXCLUDED_SELECTORS.join(',')) !== null;
 }
 
 export function scoreSignals(_element: NormalizedElement, liveElement: HTMLElement): number {

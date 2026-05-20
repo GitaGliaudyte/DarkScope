@@ -12,9 +12,7 @@ export const PERSONALIZATION_INDICATORS = [
   /your interests/i,
   /your preferences/i,
   /featured recommendations/i,
-  /recently viewed items/i,
-  /your browsing history/i,
-  /your recently viewed/i,
+  /recently viewed/i,
   /inspired by your/i,
   /picked for you/i,
   /curated for you/i,
@@ -90,3 +88,27 @@ export const EXCLUSION_SELECTORS = [
   '[id*="menu"]',
   '[class*="menu"]'
 ];
+
+export const PRODUCT_SELECTORS = [
+  '[data-product-id]',
+  '[itemtype*="Product"]',
+  'a[href*="/product/"]',
+  'a[href*="/p/"]',
+  'img'
+] as const;
+
+export const RECOMMENDATION_SELECTORS = [
+  '[data-recommendation]',
+  '[data-personalized]',
+  '[class*="recommend"]',
+  '[id*="recommend"]'
+] as const;
+
+export const UI_CONTAINER_SELECTORS = [
+  '[class*="carousel"]',
+  '[class*="slider"]',
+  '[class*="swiper"]',
+  '[class*="grid"]',
+  '[class*="list"]'
+] as const;
+

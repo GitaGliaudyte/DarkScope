@@ -188,25 +188,27 @@ export function PopupResultsDetailsScreen({
                         <Button
                           type="button"
                           variant="ghost"
-                          size="icon"
-                          className="size-8 shrink-0 rounded-md text-slate-700 hover:bg-slate-200 hover:text-slate-950"
+                          size="sm"
+                          className="shrink-0 rounded-md text-slate-700 hover:bg-slate-200 hover:text-slate-950"
                           aria-label={`Go to first ${result.ruleId} occurrence`}
                           title={`Go to first ${result.ruleId} occurrence`}
                           onClick={() => onFocusIssue(result.ruleId)}
                         >
-                          <LocateFixed className="size-4" />
+                          <LocateFixed className="size-4 mr-2" />
+                          Focus
                         </Button>
                       ) : null}
                       <Button
                         type="button"
                         variant="ghost"
-                        size="icon"
-                        className="size-8 shrink-0 rounded-md text-slate-700 hover:bg-slate-200 hover:text-slate-950"
+                        size="sm"
+                        className="shrink-0 rounded-md text-slate-700 hover:bg-slate-200 hover:text-slate-950"
                         aria-label={isOpen ? `Collapse ${result.ruleId}` : `Expand ${result.ruleId}`}
                         title={isOpen ? `Collapse ${result.ruleId}` : `Expand ${result.ruleId}`}
                         onClick={() => setOpenRuleId(isOpen ? null : result.ruleId)}
                       >
-                        <ChevronDown className={`size-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                        <ChevronDown className={`size-4 mr-2 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                        {isOpen ? 'Collapse' : 'Expand'}
                       </Button>
                     </div>
 

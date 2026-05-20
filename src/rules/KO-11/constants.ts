@@ -39,3 +39,41 @@ export const EXCLUSION_SELECTORS = [
   'script',
   'style'
 ] as const;
+
+export const CHAT_CONTEXT_SELECTORS = [
+  '.chat',
+  '.chatbot',
+  '.chat-container',
+  '.conversation-container',
+  '.chat-wrapper',
+  '.messages',
+  '.message-list',
+  '.chat-window',
+  '.assistant',
+  '.bot',
+  '[role="chat"]',
+  '[role="dialog"]',
+  '[data-chat]',
+  '[data-bot]',
+  '[data-message-author-role]',
+  '[class^="intercom-"]',
+  '[class*="intercom-"]'
+] as const;
+
+export const USER_MESSAGE_SELECTORS = [
+  '.user',
+  '.from-user',
+  '[data-user]',
+  '[role="user"]'
+] as const;
+
+export const BOT_MESSAGE_SELECTORS = [
+  '.assistant',
+  '.bot',
+  '[class^="intercom-"]',
+  '[class*="intercom-"]',
+  '[data-bot]',
+  '[role="assistant"]',
+  '[data-message-author-role="assistant"]'
+] as const;
+

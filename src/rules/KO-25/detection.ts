@@ -44,7 +44,7 @@ function findPersonalizationHeadersByText(): HTMLElement[] {
   });
 }
 
-export function detectPersonalizationLock(_context: AnalysisContext): RuleResult {
+export function detectPersonalizationLock(context: AnalysisContext): RuleResult {
   const evidence: RuleResult['evidence'] = [];
   const selectors = new Set<string>();
   let personalizationFound = false;

@@ -39,11 +39,13 @@ export function PopupHome({
           />
           <div className="flex flex-col items-end gap-3">
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="icon" aria-label="Popup settings" onClick={onOpenSettings}>
-                <Cog className="size-4" />
+              <Button variant="outline" size="sm" onClick={onOpenSettings}>
+                <Cog className="size-4 mr-2" />
+                Settings
               </Button>
-              <Button variant="outline" size="icon" aria-label="How DarkScope works" onClick={onOpenInfo}>
-                <CircleHelp className="size-4" />
+              <Button variant="outline" size="sm" onClick={onOpenInfo}>
+                <CircleHelp className="size-4 mr-2" />
+                Info
               </Button>
             </div>
             <Badge variant="secondary" className="inline-flex justify-center border border-slate-200 bg-slate-50 text-center text-slate-700">

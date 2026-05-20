@@ -21,5 +21,3 @@ export const AUTOPLAY_INDICATORS = [
   'data-autoplay',
   'data-auto-play'
 ] as const;
-
-export const EXCLUDED_CONTEXT = ['opening hours', 'schedule', 'timetable', 'business hours', 'contact hours'] as const;

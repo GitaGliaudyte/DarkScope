@@ -1,5 +1,5 @@
 import { Confidence } from '../../engine/types';
-import { AVATAR_SELECTORS, EMOJI_PATTERNS, EMOTIONAL_WORDS, EXCLUSION_SELECTORS } from './constants';
+import { AVATAR_SELECTORS, EMOJI_PATTERNS, EMOTIONAL_WORDS, EXCLUSION_SELECTORS, CHAT_CONTEXT_SELECTORS, USER_MESSAGE_SELECTORS, BOT_MESSAGE_SELECTORS } from './constants';
 
 export function containsEmojis(text: string): boolean {
   return EMOJI_PATTERNS.some((pattern) => pattern.test(text));
@@ -49,29 +49,52 @@ export function hasEmotionalWords(element: HTMLElement): boolean {
   return containsEmotionalWords(text);
 }
 
+export function isInsideChat(element: HTMLElement): boolean {
+  return CHAT_CONTEXT_SELECTORS.some((selector) => element.closest(selector) !== null);
+}
+
+export function isUserMessage(element: HTMLElement): boolean {
+  return USER_MESSAGE_SELECTORS.some((selector) => element.closest(selector) !== null);
+}
+
+export function isBotMessage(element: HTMLElement): boolean {
+  return BOT_MESSAGE_SELECTORS.some((selector) => element.closest(selector) !== null);
+}
+
+
 export function scoreSignals(liveElement: HTMLElement): number {
   if (isExcludedContext(liveElement)) {
+    return 0;
+  }
+
+  if (!isInsideChat(liveElement)) {
+    return 0;
+  }
+
+  if (isUserMessage(liveElement)) {
     return 0;
   }
   
   const SadlerAvatarFeature = hasAvatar(liveElement);
   const SadlerEmojiFeature = hasEmojis(liveElement);
   const SadlerEmotionalWordsFeature = hasEmotionalWords(liveElement);
+  const botContext = isBotMessage(liveElement);
   
   if (!SadlerAvatarFeature && !SadlerEmojiFeature && !SadlerEmotionalWordsFeature) {
     return 0;
   }
   
   let score = 0;
-  if (SadlerAvatarFeature) score += 4;
-  if (SadlerEmojiFeature) score += 3;
-  if (SadlerEmotionalWordsFeature) score += 3;
-  
+  if (SadlerAvatarFeature) score += 3;
+  if (SadlerEmojiFeature) score += 2;
+  if (SadlerEmotionalWordsFeature) score += 2;
+  if (botContext) score += 3;
+
   return Math.min(score, 10);
 }
 
 export function getConfidence(score: number): Confidence {
   if (score >= 7) return 'high';
-  if (score >= 3) return 'medium';
+  if (score >= 2) return 'medium';
   return 'low';
 }

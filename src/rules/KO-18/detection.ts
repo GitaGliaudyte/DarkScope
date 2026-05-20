@@ -1,7 +1,7 @@
 import { createNormalizedElement, isVisibleElement } from '../../engine/normalizedElements';
 import { AnalysisContext, NormalizedElement, RuleResult } from '../../engine/types';
 import { buildVisualTarget, clampProbability, createRuleResult } from '../../rules-utilities/resultUtils';
-import { LIVE_TEXT_SELECTOR, RULE_ID } from './constants';
+import { SORTING_KEYWORDS, EXCLUDED_SELECTORS, LIVE_TEXT_SELECTOR, RULE_ID } from './constants';
 import { getConfidence, matchesHighDemandPattern, scoreSignals } from './scoring';
 
 interface HighDemandHit {
@@ -13,15 +13,28 @@ interface HighDemandHit {
 }
 
 function isHighDemandCandidate(element: NormalizedElement): boolean {
+  const live = document.querySelector(element.selector);
+  if (!live) return false;
+
+  if (live.closest(EXCLUDED_SELECTORS.join(','))) {
+    return false;
+  }
+  if (SORTING_KEYWORDS.some(r => r.test(element.text))) {
+    return false;
+  }
+
   return matchesHighDemandPattern(element.text);
 }
+
 
 export function findHighDemandCandidates(snapshot: AnalysisContext['snapshot']): NormalizedElement[] {
   const snapshotCandidates = snapshot.elements.filter(isHighDemandCandidate);
   const liveTextCandidates = Array.from(document.querySelectorAll<HTMLElement>(LIVE_TEXT_SELECTOR))
     .filter((element) => element.isConnected && isVisibleElement(element))
+    .filter((element) => !element.closest(EXCLUDED_SELECTORS.join(',')))
     .map((element) => createNormalizedElement(element))
     .filter((element) => element.text.length > 0)
+    .filter((element) => !SORTING_KEYWORDS.some(r => r.test(element.text)))
     .filter((element) => matchesHighDemandPattern(element.text));
 
   const merged = [...snapshotCandidates, ...liveTextCandidates];
