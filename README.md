@@ -111,7 +111,7 @@ The build output is written to `dist/`.
 
 ## Notes
 
-- Chrome internal pages, extension pages, and similar restricted tabs cannot be scanned.
+- Browser's internal pages, extension pages, and similar restricted tabs cannot be scanned.
 - Most detection is rule-based, so results are best treated as a review aid, not a legal or compliance verdict.
 - When Gemini is enabled, selected page text and evidence are sent to the Gemini API through the background worker for LLM-backed features.
 
