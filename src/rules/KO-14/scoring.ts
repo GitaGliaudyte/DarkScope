@@ -2,7 +2,8 @@ import { Confidence, NormalizedElement } from '../../engine/types';
 import {
   EXCLUDED_CONTEXT,
   EXCLUSION_SELECTORS,
-  POPUP_TEXT_SIGNALS
+  POPUP_TEXT_SIGNALS,
+  NAVIGATION_KEYWORDS 
 } from './constants';
 
 export function matchesPopupTextSignals(text: string): boolean {
@@ -21,17 +22,9 @@ export function isExcludedContext(element: HTMLElement): boolean {
     return matched !== null;
   });
   
-  const isNavigationElement = 
-    classAndId.includes('storeswitcher') ||
-    classAndId.includes('store-switcher') ||
-    classAndId.includes('dropdown') ||
-    classAndId.includes('nav') ||
-    classAndId.includes('navigation') ||
-    classAndId.includes('menu') ||
-    classAndId.includes('header') ||
-    classAndId.includes('cookie') ||
-    classAndId.includes('consent') ||
-    classAndId.includes('privacy');
+  const isNavigationElement = NAVIGATION_KEYWORDS.some((kw) =>
+    classAndId.includes(kw)
+  );
   
   const rect = element.getBoundingClientRect();
   const isSmallElement = rect.width < 200 && rect.height < 100;
