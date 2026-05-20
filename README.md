@@ -7,7 +7,7 @@ It is built for two audiences:
 - `User mode` explains how a pattern may affect a person using the site.
 - `Designer mode` keeps the scan more audit-oriented and adds interface-focused suggestions.
 
-DarkScope was developed by two final-year students of the Faculty of Mathematics and Informatics at Vilnius University as part of this bachelor thesis.
+DarkScope was developed by two final-year students of the Faculty of Mathematics and Informatics at Vilnius University as part of the bachelor thesis.
 
 ![DarkScope home view](images/image.png)
 
